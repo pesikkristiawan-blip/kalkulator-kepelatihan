@@ -1,0 +1,14 @@
+{
+  "name": "Kalkulator Kepelatihan Olahraga",
+  "short_name": "Kepelatihan",
+  "description": "Alat bantu pelatih dan guru PJOK: VO2 maks, zona detak jantung, komposisi tubuh, program latihan, target nutrisi.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EEF1EA",
+  "theme_color": "#10233B",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

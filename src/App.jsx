@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { Activity, HeartPulse, Ruler, Info, Dumbbell, Utensils, Sun, Moon, History, Download, Save, Gauge, Droplets, Camera, RotateCcw, CheckCircle2, User } from "lucide-react";
+import { Activity, HeartPulse, Ruler, Info, Dumbbell, Utensils, Sun, Moon, History, Download, Save, Gauge, Droplets, Camera, RotateCcw, CheckCircle2, User, Home } from "lucide-react";
 
 const INK = "#10233B";
 const TRACK = "#C1440E";
@@ -152,18 +152,27 @@ function inputCls() {
   return "w-full bg-transparent border-0 border-b-2 py-2 text-lg outline-none transition-colors";
 }
 
-function NumberInput({ value, onChange, placeholder }) {
+function NumberInput({ value, onChange, placeholder, min, max, warnText }) {
+  const num = parseFloat(value);
+  const outOfRange = value !== "" && !isNaN(num) && ((min != null && num < min) || (max != null && num > max));
   return (
-    <input
-      type="number"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className={inputCls()}
-      style={{ borderColor: LINE, color: GRAPHITE }}
-      onFocus={(e) => (e.target.style.borderColor = TRACK)}
-      onBlur={(e) => (e.target.style.borderColor = LINE)}
-    />
+    <div>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={inputCls()}
+        style={{ borderColor: outOfRange ? "#D97706" : LINE, color: GRAPHITE }}
+        onFocus={(e) => (e.target.style.borderColor = TRACK)}
+        onBlur={(e) => (e.target.style.borderColor = outOfRange ? "#D97706" : LINE)}
+      />
+      {outOfRange && (
+        <span className="text-xs mt-1 block" style={{ color: "#B7791F" }}>
+          ⚠ {warnText || `Periksa kembali — di luar rentang wajar (${min ?? "–"}\u2013${max ?? "–"})`}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -306,52 +315,45 @@ function Footnote({ children }) {
 
 // ---------- RIWAYAT (progress tracking) ----------
 
-const hasStorage = typeof window !== "undefined" && !!window.storage;
+const hasStorage = typeof window !== "undefined" && !!window.localStorage;
 
 function useHistory(storageKey) {
   const [entries, setEntries] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      if (!hasStorage) {
-        if (!cancelled) setLoaded(true);
-        return;
-      }
-      try {
-        const res = await window.storage.get(storageKey, false);
-        if (!cancelled) setEntries(res ? JSON.parse(res.value) : []);
-      } catch (e) {
-        if (!cancelled) setEntries([]);
-      } finally {
-        if (!cancelled) setLoaded(true);
-      }
+    if (!hasStorage) {
+      setLoaded(true);
+      return;
     }
-    load();
-    return () => {
-      cancelled = true;
-    };
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      setEntries(raw ? JSON.parse(raw) : []);
+    } catch (e) {
+      setEntries([]);
+    } finally {
+      setLoaded(true);
+    }
   }, [storageKey]);
 
-  const addEntry = async (value, meta) => {
+  const addEntry = (value, meta) => {
     const entry = { date: new Date().toISOString(), value, ...meta };
     const next = [...entries, entry].slice(-30);
     setEntries(next);
     if (hasStorage) {
       try {
-        await window.storage.set(storageKey, JSON.stringify(next), false);
+        window.localStorage.setItem(storageKey, JSON.stringify(next));
       } catch (e) {
-        // gagal tersimpan permanen, tapi tetap tampil untuk sesi ini
+        // penyimpanan penuh/diblokir browser — tetap tampil untuk sesi ini
       }
     }
   };
 
-  const clearAll = async () => {
+  const clearAll = () => {
     setEntries([]);
     if (hasStorage) {
       try {
-        await window.storage.set(storageKey, JSON.stringify([]), false);
+        window.localStorage.removeItem(storageKey);
       } catch (e) {}
     }
   };
@@ -443,7 +445,7 @@ function downloadShareCard({ headline, value, unit, badge, badgeColor, stats = [
   // label brand
   ctx.fillStyle = "#9AA6B2";
   ctx.font = "600 22px sans-serif";
-  ctx.fillText("KALKULATOR KEPELATIHAN OLAHRAGA", 56, 74);
+  ctx.fillText("JEJAK", 56, 74);
 
   // garis aksen
   ctx.fillStyle = TRACK;
@@ -592,10 +594,10 @@ function ProfilePanel() {
           />
         </Field>
         <Field label="Tinggi badan" unit="cm">
-          <NumberInput value={form.height} onChange={set("height")} placeholder="170" />
+          <NumberInput value={form.height} onChange={set("height")} placeholder="170" min={100} max={250} />
         </Field>
         <Field label="Berat badan saat ini" unit="kg">
-          <NumberInput value={form.weight} onChange={set("weight")} placeholder="65" />
+          <NumberInput value={form.weight} onChange={set("weight")} placeholder="65" min={20} max={300} />
         </Field>
         <Field label="Level pengalaman latihan">
           <Select
@@ -781,7 +783,7 @@ function Vo2Panel() {
               />
             </Field>
             <Field label="Berat badan" unit="kg">
-              <NumberInput value={weightKg} onChange={setWeightKg} placeholder="65" />
+              <NumberInput value={weightKg} onChange={setWeightKg} placeholder="65" min={20} max={300} />
             </Field>
             <Field label="Waktu tempuh 1 mil" unit="menit">
               <NumberInput value={timeMin} onChange={setTimeMin} placeholder="13" />
@@ -1031,10 +1033,10 @@ function BodyPanel() {
         <div className="p-4 md:p-6 flex flex-col md:grid md:grid-cols-5 gap-4">
           <div className="order-2 md:order-1 md:col-span-2 p-6 md:p-8 rounded-xl" style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}>
             <Field label="Berat badan" unit="kg">
-              <NumberInput value={weightKg} onChange={setWeightKg} placeholder="65" />
+              <NumberInput value={weightKg} onChange={setWeightKg} placeholder="65" min={20} max={300} />
             </Field>
             <Field label="Tinggi badan" unit="cm">
-              <NumberInput value={heightCm} onChange={setHeightCm} placeholder="170" />
+              <NumberInput value={heightCm} onChange={setHeightCm} placeholder="170" min={100} max={250} />
             </Field>
             <Footnote>
               Menggunakan ambang batas Asia-Pasifik (WHO), bukan ambang batas umum
@@ -1688,6 +1690,84 @@ function IdealWeightHint({ height, weight, gender = "male" }) {
   );
 }
 
+function DashboardPanel({ onNavigate }) {
+  const [profile] = useProfile();
+  const { program } = useActiveProgram();
+
+  const features = [
+    {
+      icon: Gauge,
+      color: ICON_COLORS.onerm,
+      title: "8 Kalkulator Ilmiah",
+      body: "VO2 Maks, BMI, 1RM, dan lainnya — berbasis riset sains kepelatihan terkini.",
+      tab: "vo2",
+    },
+    {
+      icon: Dumbbell,
+      color: ICON_COLORS.latihan,
+      title: "Program Otomatis",
+      body: "Jadwal harian personal sesuai tujuan, level, dan waktu latihan Anda.",
+      tab: "latihan",
+    },
+    {
+      icon: History,
+      color: ICON_COLORS.riwayat,
+      title: "Progres Terekam",
+      body: "Tren berat badan, kekuatan, dan kepatuhan latihan tersimpan otomatis.",
+      tab: "riwayat",
+    },
+    {
+      icon: Utensils,
+      color: ICON_COLORS.nutrisi,
+      title: "Target Nutrisi",
+      body: "Kebutuhan kalori & makro harian, menyesuaikan tujuan latihan Anda.",
+      tab: "nutrisi",
+    },
+  ];
+
+  return (
+    <div className="p-4 md:p-6">
+      <Card className="p-6 md:p-8 mb-4" style={{ backgroundColor: INK, border: "none" }}>
+        <IconBadge icon={Dumbbell} color={TRACK} size={48} />
+        <h2 className="font-black text-2xl mt-4" style={{ color: CHALK }}>
+          {profile.name ? `Halo, ${profile.name} 👋` : "Wujudkan Tujuan Kebugaran Anda"}
+        </h2>
+        <p className="text-sm mt-2 max-w-md" style={{ color: "#9AA6B2" }}>
+          {program
+            ? "Program latihan Anda sedang berjalan — lanjutkan untuk melihat sesi hari ini."
+            : "Buat program latihan personal dalam hitungan detik — lengkap dengan jadwal otomatis, pelacakan progres, dan rekomendasi berbasis sains."}
+        </p>
+        <button
+          onClick={() => onNavigate && onNavigate("latihan")}
+          className="mt-4 px-5 py-2.5 text-sm font-semibold rounded-full"
+          style={{ backgroundColor: TRACK, color: "#FFFFFF" }}
+        >
+          {program ? "Buka Program Latihan →" : "Mulai Buat Program →"}
+        </button>
+      </Card>
+
+      <span className="text-xs font-semibold uppercase tracking-wide px-1" style={{ color: MUTED }}>
+        Fitur utama
+      </span>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+        {features.map((f) => (
+          <button key={f.title} onClick={() => onNavigate && onNavigate(f.tab)} className="text-left">
+            <Card className="p-4 h-full">
+              <IconBadge icon={f.icon} color={f.color} size={32} />
+              <div className="text-sm font-bold mt-2" style={{ color: GRAPHITE }}>
+                {f.title}
+              </div>
+              <p className="text-xs mt-1" style={{ color: MUTED }}>
+                {f.body}
+              </p>
+            </Card>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ProgramSetupForm({ onStart }) {
   const [profile] = useProfile();
   const [freq, setFreq] = useState("4");
@@ -1982,7 +2062,7 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
       headline: `Sesi ${todayEntry.label} Selesai!`,
       stats,
       listBlock: finalExercises,
-      footer: `Minggu ${todayEntry.weekNum} dari ${program.durationWeeks}${todayEntry.deload ? " · Deload" : ""} · Kalkulator Kepelatihan Olahraga`,
+      footer: `Minggu ${todayEntry.weekNum} dari ${program.durationWeeks}${todayEntry.deload ? " · Deload" : ""} · Jejak`,
       filename: `sesi-${todayEntry.label}-${todayEntry.date}`,
     });
     setJustCompleted(true);
@@ -2041,7 +2121,7 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
           <NumberInput value={heartRate} onChange={setHeartRate} placeholder="dari smartwatch" />
         </Field>
         <Field label="Berat badan (opsional)" unit="kg">
-          <NumberInput value={weight} onChange={setWeight} placeholder="opsional" />
+          <NumberInput value={weight} onChange={setWeight} placeholder="opsional" min={20} max={300} />
         </Field>
         <Field label="RPE (opsional)">
           <Select value={rpe} onChange={setRpe} options={RPE_SCALE.map((r) => ({ value: String(r.value), label: r.label }))} />
@@ -2899,10 +2979,10 @@ function NutrisiPanel() {
             <NumberInput value={age} onChange={setAge} placeholder="28" />
           </Field>
           <Field label="Berat badan" unit="kg">
-            <NumberInput value={weightKg} onChange={setWeightKg} placeholder="65" />
+            <NumberInput value={weightKg} onChange={setWeightKg} placeholder="65" min={20} max={300} />
           </Field>
           <Field label="Tinggi badan" unit="cm">
-            <NumberInput value={heightCm} onChange={setHeightCm} placeholder="170" />
+            <NumberInput value={heightCm} onChange={setHeightCm} placeholder="170" min={100} max={250} />
           </Field>
           <Field label="Tingkat aktivitas">
             <Select
@@ -3210,7 +3290,7 @@ function HydrationPanel() {
     <div className="p-4 md:p-6 flex flex-col md:grid md:grid-cols-5 gap-4">
       <div className="order-2 md:order-1 md:col-span-2 p-6 md:p-8 rounded-xl" style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}>
         <Field label="Berat badan" unit="kg">
-          <NumberInput value={weightKg} onChange={setWeightKg} placeholder="65" />
+          <NumberInput value={weightKg} onChange={setWeightKg} placeholder="65" min={20} max={300} />
         </Field>
         <Field label="Durasi latihan" unit="menit">
           <NumberInput value={durationMin} onChange={setDurationMin} placeholder="60" />
@@ -3432,10 +3512,9 @@ function HistoryPanel({ onNavigate }) {
     <div className="p-6 md:p-8">
       {!hasStorage && (
         <div className="mb-4 p-3 text-xs rounded-sm" style={{ backgroundColor: "#F3EAD8", color: "#7A5A20" }}>
-          Penyimpanan permanen tidak tersedia di lingkungan pratinjau ini —
-          riwayat hanya bertahan selama sesi berjalan. Saat aplikasi
-          benar-benar dideploy, sambungkan ke local storage/database agar
-          riwayat tersimpan permanen di perangkat pengguna.
+          Browser Anda tidak mendukung penyimpanan lokal — riwayat hanya
+          bertahan selama sesi ini berjalan dan akan hilang saat halaman
+          ditutup.
         </div>
       )}
       <SessionHistorySection onNavigate={onNavigate} />
@@ -3461,6 +3540,7 @@ const CALC_TABS = [
 ];
 
 const TABS = [
+  { key: "dashboard", label: "Dashboard", icon: Home },
   { key: "latihan", label: "Program Latihan", icon: Dumbbell },
   ...CALC_TABS,
   { key: "nutrisi", label: "Target nutrisi", icon: Utensils },
@@ -3517,14 +3597,122 @@ function CalcSheet({ activeTab, onSelect, onClose }) {
   );
 }
 
+// ---------- ONBOARDING ----------
+
+const ONBOARDING_SLIDES = [
+  {
+    icon: Dumbbell,
+    color: TRACK,
+    title: "Selamat datang 👋",
+    body: "Jejak membantu Anda menghitung kebutuhan latihan & nutrisi, sekaligus menyusun program latihan otomatis berdasarkan tujuan Anda.",
+  },
+  {
+    icon: User,
+    color: ICON_COLORS.profil,
+    title: "Mulai dari Profil",
+    body: "Isi usia, tinggi, berat badan sekali di menu Profil — data ini otomatis mengisi semua kalkulator lain, jadi Anda tidak perlu ketik ulang setiap kali.",
+  },
+  {
+    icon: Dumbbell,
+    color: ICON_COLORS.latihan,
+    title: "Buat Program Latihan",
+    body: "Pilih tujuan, frekuensi, dan durasi — sistem otomatis membuat jadwal harian lengkap dengan minggu deload, dan mengingat progres Anda setiap hari.",
+  },
+  {
+    icon: Gauge,
+    color: ICON_COLORS.onerm,
+    title: "8 kalkulator siap pakai",
+    body: "VO2 Maks, Zona Detak Jantung, Komposisi Tubuh, 1RM, Kebutuhan Cairan, dan Target Nutrisi — semua bisa dipakai kapan saja lewat menu Kalkulator.",
+  },
+];
+
+function loadOnboardedFlag() {
+  if (typeof window === "undefined" || !window.localStorage) return true;
+  try {
+    return window.localStorage.getItem("hasOnboarded") === "1";
+  } catch (e) {
+    return true;
+  }
+}
+
+function OnboardingOverlay({ onDone }) {
+  const [step, setStep] = useState(0);
+  const slide = ONBOARDING_SLIDES[step];
+  const Icon = slide.icon;
+  const isLast = step === ONBOARDING_SLIDES.length - 1;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(10,18,28,0.6)" }}>
+      <div className="w-full max-w-sm rounded-2xl p-6 panel-anim" style={{ backgroundColor: "var(--c-surface)" }}>
+        <div className="flex justify-end">
+          <button onClick={onDone} className="text-xs" style={{ color: MUTED }}>
+            Lewati
+          </button>
+        </div>
+        <div className="flex flex-col items-center text-center py-4">
+          <IconBadge icon={Icon} color={slide.color} size={56} />
+          <h2 className="font-black text-xl mt-4" style={{ color: GRAPHITE }}>
+            {slide.title}
+          </h2>
+          <p className="text-sm mt-2" style={{ color: MUTED }}>
+            {slide.body}
+          </p>
+        </div>
+        <div className="flex justify-center gap-1.5 my-4">
+          {ONBOARDING_SLIDES.map((_, i) => (
+            <div
+              key={i}
+              className="rounded-full"
+              style={{
+                width: i === step ? 18 : 6,
+                height: 6,
+                backgroundColor: i === step ? TRACK : "var(--c-line)",
+                transition: "width 200ms ease",
+              }}
+            />
+          ))}
+        </div>
+        <div className="flex gap-3">
+          {step > 0 && (
+            <button
+              onClick={() => setStep((s) => s - 1)}
+              className="px-4 py-2.5 text-sm font-semibold rounded-full"
+              style={{ backgroundColor: "var(--c-page)", color: GRAPHITE }}
+            >
+              Kembali
+            </button>
+          )}
+          <button
+            onClick={() => (isLast ? onDone() : setStep((s) => s + 1))}
+            className="flex-1 px-4 py-2.5 text-sm font-semibold rounded-full"
+            style={{ backgroundColor: TRACK, color: "#FFFFFF" }}
+          >
+            {isLast ? "Mulai" : "Lanjut"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
-  const [tab, setTab] = useState("latihan");
+  const [tab, setTab] = useState("dashboard");
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState("light");
   const [booted, setBooted] = useState(false);
   const [splashHidden, setSplashHidden] = useState(false);
   const [calcSheetOpen, setCalcSheetOpen] = useState(false);
   const [profile] = useProfile();
+  const [needsOnboarding, setNeedsOnboarding] = useState(() => !loadOnboardedFlag());
+
+  const finishOnboarding = () => {
+    setNeedsOnboarding(false);
+    if (typeof window !== "undefined" && window.localStorage) {
+      try {
+        window.localStorage.setItem("hasOnboarded", "1");
+      } catch (e) {}
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -3539,7 +3727,7 @@ export default function App() {
   const isCalcTab = CALC_TABS.some((t) => t.key === tab);
   const activeTabMeta = TABS.find((t) => t.key === tab);
   const greeting = profile.name ? `Selamat datang kembali, ${profile.name} 👋` : "Selamat datang kembali 👋";
-  const headerSubtitle = tab === "latihan" ? greeting : "Kalkulator & program latihan personal Anda";
+  const headerSubtitle = tab === "dashboard" ? greeting : "Kalkulator & program latihan personal Anda";
 
   return (
     <div className="min-h-screen" data-theme={theme} style={{ backgroundColor: "var(--c-page)" }}>
@@ -3611,11 +3799,11 @@ export default function App() {
       {!splashHidden && (
         <div className={`splash-overlay${booted ? " boot-out" : ""}`}>
           <div className="splash-mark">
-            <span style={{ color: "#EEF1EA", fontWeight: 900, fontSize: 30 }}>K</span>
+            <span style={{ color: "#EEF1EA", fontWeight: 900, fontSize: 30 }}>J</span>
           </div>
           <div style={{ width: 44, height: 4, backgroundColor: "#C1440E", marginTop: 14, borderRadius: 2 }} />
           <span style={{ color: "#9AA6B2", fontSize: 13, marginTop: 14, letterSpacing: "0.02em" }}>
-            Kalkulator Kepelatihan Olahraga
+            Jejak — Kepelatihan Olahraga
           </span>
         </div>
       )}
@@ -3632,10 +3820,10 @@ export default function App() {
                 className="flex items-center justify-center rounded-lg shrink-0"
                 style={{ width: 34, height: 34, backgroundColor: TRACK }}
               >
-                <span style={{ color: "#FFFFFF", fontWeight: 900, fontSize: 16 }}>K</span>
+                <span style={{ color: "#FFFFFF", fontWeight: 900, fontSize: 16 }}>J</span>
               </div>
-              <span className="font-black leading-tight" style={{ color: CHALK, fontSize: 15 }}>
-                Kalkulator Kepelatihan
+              <span className="font-black leading-tight" style={{ color: CHALK, fontSize: 17 }}>
+                Jejak
               </span>
             </div>
           </div>
@@ -3680,13 +3868,21 @@ export default function App() {
                 className="font-black tracking-tight leading-tight"
                 style={{ fontSize: "clamp(1.4rem, 4.5vw, 1.9rem)", color: CHALK }}
               >
-                Kalkulator kepelatihan olahraga
+                Jejak
               </h1>
               <p className="mt-1 text-xs sm:text-sm" style={{ color: "#9AA6B2" }}>
                 {headerSubtitle}
               </p>
             </div>
             <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => setTab("dashboard")}
+                className="theme-toggle p-2 rounded-full"
+                style={{ color: tab === "dashboard" ? TRACK : CHALK }}
+                aria-label="Buka dashboard"
+              >
+                <Home size={20} />
+              </button>
               <button
                 onClick={() => setTab("profil")}
                 className="theme-toggle p-2 rounded-full"
@@ -3710,7 +3906,7 @@ export default function App() {
           <header className="hidden md:flex items-center justify-between px-8 pt-8 pb-2">
             <div>
               <h1 className="font-black text-2xl" style={{ color: GRAPHITE }}>
-                {activeTabMeta ? activeTabMeta.label : "Kalkulator Kepelatihan Olahraga"}
+                {activeTabMeta ? activeTabMeta.label : "Jejak"}
               </h1>
               <p className="text-sm mt-0.5" style={{ color: MUTED }}>
                 {headerSubtitle}
@@ -3725,6 +3921,7 @@ export default function App() {
               {tab === "body" && <BodyPanel />}
               {tab === "onerm" && <OneRmPanel />}
               {tab === "hidrasi" && <HydrationPanel />}
+              {tab === "dashboard" && <DashboardPanel onNavigate={setTab} />}
               {tab === "latihan" && <LatihanPanel />}
               {tab === "nutrisi" && <NutrisiPanel />}
               {tab === "riwayat" && <HistoryPanel onNavigate={setTab} />}
@@ -3771,6 +3968,8 @@ export default function App() {
           onClose={() => setCalcSheetOpen(false)}
         />
       )}
+
+      {needsOnboarding && splashHidden && <OnboardingOverlay onDone={finishOnboarding} />}
     </div>
   );
 }

@@ -81,6 +81,84 @@ const GLOSSARY_TERMS = [
   { term: "Beban Latihan Mingguan", def: "Estimasi total 'tekanan' latihan seminggu, dihitung dari RPE dikali durasi tiap sesi lalu dijumlah. Indikator kasar untuk kesadaran diri — bukan alat prediksi cedera yang pasti akurat." },
 ];
 
+const GUIDE_STEPS = [
+  {
+    num: "1",
+    title: "Isi Profil dulu",
+    body: "Buka menu Profil, isi usia, jenis kelamin, tinggi, berat badan, dan level pengalaman. Data ini otomatis mengisi semua kalkulator lain — jadi Anda tidak perlu mengetik ulang. Aplikasi juga menyesuaikan rekomendasi berdasarkan usia (remaja di bawah 18 tahun dan lansia 60 tahun ke atas dapat penyesuaian khusus).",
+  },
+  {
+    num: "2",
+    title: "Buat program latihan",
+    body: "Masuk ke Program Latihan. Pilih level pengalaman Anda — pilihan frekuensi, skema, dan durasi akan otomatis menyesuaikan supaya tidak berlebihan. Pilih tujuan (menurunkan berat, menambah otot, dll), tentukan hari latihan, lalu ketuk 'Mulai Program Ini'.",
+  },
+  {
+    num: "3",
+    title: "Jalankan sesi hari ini",
+    body: "Setiap hari latihan, buka Dashboard atau Program Latihan. Ketuk 'Lanjutkan Latihan' → jawab cek kondisi singkat (tidur & nyeri) → isi beban dan repetisi tiap gerakan. Aplikasi memberi saran beban berdasarkan catatan sesi sebelumnya.",
+  },
+  {
+    num: "4",
+    title: "Tandai selesai & bagikan",
+    body: "Setelah latihan selesai, isi durasi dan data opsional (detak jantung, berat badan, RPE). Ketuk 'Tandai selesai & bagikan' — aplikasi menyimpan progres Anda dan membuat kartu hasil yang bisa dibagikan ke media sosial, lengkap dengan foto latihan Anda.",
+  },
+  {
+    num: "5",
+    title: "Pantau perkembangan",
+    body: "Dashboard menampilkan progres program, rentetan latihan (streak), dan tren berat badan. Menu Riwayat menyimpan semua catatan kalkulator. Di Profil ada Rekor Pribadi dan Pengukuran Tubuh.",
+  },
+  {
+    num: "6",
+    title: "Jangan lupa cadangkan data",
+    body: "Semua data tersimpan di perangkat Anda sendiri (tidak di server kami). Sesekali buka Profil → Backup & Restore Data → Ekspor Data, simpan filenya. Ini penting kalau Anda ganti HP atau menghapus data browser.",
+  },
+];
+
+function GuidePanel({ onNavigate }) {
+  return (
+    <div className="p-4 md:p-6">
+      <button onClick={() => onNavigate && onNavigate("profil")} className="text-xs font-semibold mb-4" style={{ color: TRACK }}>
+        ← Kembali ke Profil
+      </button>
+      <Card className="p-6 md:p-8">
+        <div className="flex items-center gap-3 mb-2">
+          <IconBadge icon={Info} color={ICON_COLORS.latihan} />
+          <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+            Petunjuk Penggunaan
+          </span>
+        </div>
+        <p className="text-xs mb-6" style={{ color: MUTED }}>
+          Panduan singkat memakai Jejak dari awal sampai rutin.
+        </p>
+        <div className="flex flex-col gap-5">
+          {GUIDE_STEPS.map((s) => (
+            <div key={s.num} className="flex gap-3">
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
+                style={{ backgroundColor: TRACK, color: "#FFFFFF" }}
+              >
+                {s.num}
+              </div>
+              <div>
+                <div className="text-sm font-bold" style={{ color: GRAPHITE }}>{s.title}</div>
+                <p className="text-xs mt-1" style={{ color: MUTED }}>{s.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 pt-4" style={{ borderTop: `1px solid ${LINE}` }}>
+          <p className="text-xs" style={{ color: MUTED }}>
+            Masih bingung dengan istilah seperti RPE, 1RM, atau deload?{" "}
+            <button onClick={() => onNavigate && onNavigate("glossary")} className="font-semibold" style={{ color: TRACK }}>
+              Buka Kamus Istilah
+            </button>
+          </p>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 function GlossaryPanel({ onNavigate }) {
   return (
     <div className="p-4 md:p-6">
@@ -1255,6 +1333,26 @@ function ProfilePanel({ onNavigate }) {
         style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}
       >
         <div className="flex items-center gap-3">
+          <IconBadge icon={Info} color={ICON_COLORS.latihan} />
+          <div>
+            <span className="text-sm font-semibold" style={{ color: GRAPHITE }}>Baru pertama pakai Jejak?</span>
+            <p className="text-xs" style={{ color: MUTED }}>Panduan langkah demi langkah dari isi profil sampai rutin latihan.</p>
+          </div>
+        </div>
+        <button
+          onClick={() => onNavigate && onNavigate("guide")}
+          className="px-4 py-2 text-xs font-semibold rounded-full shrink-0"
+          style={{ backgroundColor: "var(--c-page)", color: GRAPHITE }}
+        >
+          Petunjuk Penggunaan
+        </button>
+      </div>
+
+      <div
+        className="order-4 md:col-span-5 p-6 md:p-8 rounded-xl flex items-center justify-between gap-4"
+        style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}
+      >
+        <div className="flex items-center gap-3">
           <IconBadge icon={Info} color={ICON_COLORS.profil} />
           <div>
             <span className="text-sm font-semibold" style={{ color: GRAPHITE }}>Bingung dengan istilah di aplikasi ini?</span>
@@ -1806,6 +1904,43 @@ function autoScheme(freq) {
   return "ppl";
 }
 
+// ---------- BATASAN PER LEVEL PENGALAMAN ----------
+// Mengikuti pedoman umum kepelatihan: pemula perlu volume lebih rendah &
+// frekuensi per otot tinggi (full body), lanjutan boleh volume/split lebih besar.
+const LEVEL_RULES = {
+  pemula: {
+    freqOptions: [2, 3],
+    defaultFreq: "3",
+    schemes: ["fullbody"],
+    defaultScheme: "fullbody",
+    durations: ["4", "8"],
+    defaultDuration: "8",
+    note: "Untuk pemula, program dibatasi 2–3x/minggu dengan skema Full body — ini yang paling didukung riset untuk membangun dasar kekuatan & teknik tanpa berlebihan.",
+  },
+  menengah: {
+    freqOptions: [3, 4, 5],
+    defaultFreq: "4",
+    schemes: ["fullbody", "upperlower", "ppl"],
+    defaultScheme: "upperlower",
+    durations: ["4", "8", "12"],
+    defaultDuration: "8",
+    note: "Level menengah bisa menambah frekuensi & mulai memakai skema terpisah (Upper-Lower / Push-Pull-Legs).",
+  },
+  lanjutan: {
+    freqOptions: [3, 4, 5, 6],
+    defaultFreq: "5",
+    schemes: ["fullbody", "upperlower", "ppl", "bodypart", "pplx2"],
+    defaultScheme: "ppl",
+    durations: ["4", "8", "12", "16"],
+    defaultDuration: "12",
+    note: "Level lanjutan bebas memilih semua skema, termasuk split otot per hari dan PPL 2x/minggu.",
+  },
+};
+
+function rulesForLevel(level) {
+  return LEVEL_RULES[level] || LEVEL_RULES.pemula;
+}
+
 // ---------- TUJUAN LATIHAN ----------
 
 const TRAINING_GOALS = {
@@ -2059,7 +2194,29 @@ function useActiveProgram() {
   };
 
   const startProgram = (config) => {
-    persist({ ...config, startDate: toDateStr(new Date()), completedSessions: [] });
+    // Program dimulai dari hari latihan pertama yang BELUM lewat.
+    // Contoh: kalau hari ini Selasa dan Senin dipilih sebagai hari latihan,
+    // Senin minggu ini sudah lewat — jadi program dimulai dari Selasa,
+    // bukan mendaftarkan Senin yang mustahil dikerjakan.
+    const today = new Date();
+    const freqNum = Math.min(Math.max(parseInt(config.freq, 10) || 3, 2), 6);
+    const trainingDayIdx =
+      config.dayMode === "manual" && config.customDays && config.customDays.length > 0
+        ? config.customDays
+        : FREQ_DAY_MAP[freqNum];
+
+    let startDate = new Date(today);
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const weekdayIdx = (d.getDay() + 6) % 7;
+      if (trainingDayIdx.includes(weekdayIdx)) {
+        startDate = d;
+        break;
+      }
+    }
+
+    persist({ ...config, startDate: toDateStr(startDate), completedSessions: [] });
   };
 
   const resetProgram = () => {
@@ -2105,11 +2262,11 @@ function isDeloadWeek(weekNum) {
 }
 
 function buildSchedule(program) {
-  const { freq, schemeMode, manualScheme, durationWeeks, dayMode, customDays } = program;
+  const { freq, schemeMode, manualScheme, durationWeeks, dayMode, customDays, sessionOrder } = program;
   const freqNum = Math.min(Math.max(parseInt(freq, 10) || 3, 2), 6);
   const trainingDayIdx = dayMode === "manual" && customDays && customDays.length > 0 ? customDays : FREQ_DAY_MAP[freqNum];
-  const effectiveFreq = dayMode === "manual" ? trainingDayIdx.length : freqNum;
-  const scheme = schemeMode === "auto" ? autoScheme(effectiveFreq) : manualScheme;
+  // Program baru selalu menyimpan manualScheme; schemeMode hanya ada di data lama.
+  const scheme = manualScheme || (schemeMode === "auto" ? autoScheme(trainingDayIdx.length) : "fullbody");
   const sessionCycle = SCHEME_LABELS[scheme].sessions;
   const start = new Date(program.startDate + "T00:00:00");
   const startWeekdayIdx = (start.getDay() + 6) % 7; // 0=Senin
@@ -2119,19 +2276,23 @@ function buildSchedule(program) {
 
   const days = [];
   const cardioCountByWeek = {};
+  let sessionCounter = 0; // urutan sesi latihan nyata sejak program dimulai
   for (let i = 0; i < totalDays; i++) {
     const d = new Date(start);
     d.setDate(d.getDate() + i);
     const weekdayIdx = (d.getDay() + 6) % 7; // 0=Senin
-    const trainIndex = trainingDayIdx.indexOf(weekdayIdx);
+    const isTrainingDay = trainingDayIdx.includes(weekdayIdx);
     const daysSinceFirstMonday = Math.round((d - firstMonday) / 86400000);
     const weekNum = Math.floor(daysSinceFirstMonday / 7) + 1; // selaras kalender Senin-Minggu
     const deload = isDeloadWeek(weekNum);
-    if (trainIndex === -1) {
+    if (!isTrainingDay) {
       days.push({ date: toDateStr(d), weekNum, deload, rest: true });
       continue;
     }
-    const sessionLabel = sessionCycle[trainIndex % sessionCycle.length];
+    // Urutan kustom per hari (kalau diatur pengguna), kalau tidak pakai urutan otomatis
+    const customLabel = sessionOrder && sessionOrder[String(weekdayIdx)];
+    const sessionLabel = customLabel || sessionCycle[sessionCounter % sessionCycle.length];
+    sessionCounter++;
     const sessionKey = sessionLabel.toLowerCase().replace(" ", "").replace("-", "");
     const key = sessionKey === "fullbody" ? "fullbody" : sessionKey;
     let cardioType = null;
@@ -2162,14 +2323,37 @@ function currentCalendarWeek(days, todayStr) {
 }
 
 // Pratinjau pola 1 minggu (dipakai saat setup, sebelum program dimulai)
-function previewWeekPattern({ dayMode, freq, customDays, scheme }) {
+function previewWeekPattern({ dayMode, freq, customDays, scheme, sessionOrder }) {
   const trainingDayIdx = dayMode === "manual" && customDays.length > 0 ? customDays : FREQ_DAY_MAP[freq];
   const sessionCycle = SCHEME_LABELS[scheme].sessions;
+  let counter = 0;
   return DAY_NAMES.map((day, i) => {
-    const trainIndex = trainingDayIdx.indexOf(i);
-    if (trainIndex === -1) return { day, rest: true };
-    return { day, rest: false, label: sessionCycle[trainIndex % sessionCycle.length] };
+    if (!trainingDayIdx.includes(i)) return { day, dayIdx: i, rest: true };
+    const auto = sessionCycle[counter % sessionCycle.length];
+    counter++;
+    const custom = sessionOrder && sessionOrder[String(i)];
+    return { day, dayIdx: i, rest: false, label: custom || auto, isCustom: !!custom };
   });
+}
+
+// Deteksi sesi otot sama di hari berturut-turut (kurang ideal untuk pemulihan)
+function findBackToBackWarnings(weekPattern) {
+  const warnings = [];
+  const training = weekPattern.filter((d) => !d.rest);
+  for (let i = 0; i < weekPattern.length - 1; i++) {
+    const a = weekPattern[i];
+    const b = weekPattern[i + 1];
+    if (!a.rest && !b.rest && a.label === b.label && a.label !== "Full body") {
+      warnings.push(`${a.label} dilatih berturut-turut (${a.day}–${b.day})`);
+    }
+  }
+  // Cek juga Minggu → Senin (berputar ke minggu berikutnya)
+  const last = weekPattern[6];
+  const first = weekPattern[0];
+  if (!last.rest && !first.rest && last.label === first.label && last.label !== "Full body") {
+    warnings.push(`${last.label} dilatih berturut-turut (Minggu–Senin)`);
+  }
+  return warnings;
 }
 
 function weeklyEvaluations(program, days) {
@@ -2258,13 +2442,22 @@ async function downloadPhotoShareCard({ photoDataUrl, headline, stats, listBlock
     ctx.fillRect(0, 0, width, height);
   }
 
+  // Gradasi: gelap di atas & bawah supaya teks terbaca, foto tetap terlihat di tengah
   const grad = ctx.createLinearGradient(0, 0, 0, height);
-  grad.addColorStop(0, "rgba(16,35,59,0.72)");
-  grad.addColorStop(0.35, "rgba(16,35,59,0.30)");
-  grad.addColorStop(0.6, "rgba(16,35,59,0.60)");
-  grad.addColorStop(1, "rgba(16,35,59,0.94)");
+  grad.addColorStop(0, "rgba(10,20,34,0.82)");
+  grad.addColorStop(0.28, "rgba(10,20,34,0.34)");
+  grad.addColorStop(0.52, "rgba(10,20,34,0.18)");
+  grad.addColorStop(0.72, "rgba(10,20,34,0.68)");
+  grad.addColorStop(1, "rgba(10,20,34,0.97)");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, width, height);
+
+  // Sentuhan warna brand di tepi bawah supaya tidak terasa datar
+  const accentGrad = ctx.createLinearGradient(0, height - 420, 0, height);
+  accentGrad.addColorStop(0, "rgba(193,68,14,0)");
+  accentGrad.addColorStop(1, "rgba(193,68,14,0.18)");
+  ctx.fillStyle = accentGrad;
+  ctx.fillRect(0, height - 420, width, 420);
 
   let y = 320;
 
@@ -2371,17 +2564,43 @@ async function downloadPhotoShareCard({ photoDataUrl, headline, stats, listBlock
     ctx.fill();
   }
 
-  // Blok bawah: garis aksen, headline, footer
+  // ---------- Blok bawah: headline + logo Jejak ----------
   ctx.fillStyle = TRACK;
-  ctx.fillRect(PAD, height - 300, 76, 7);
+  ctx.fillRect(PAD, height - 330, 76, 7);
 
-  ctx.font = "900 52px sans-serif";
+  ctx.font = "900 56px sans-serif";
   ctx.fillStyle = "#FFFFFF";
-  wrapCanvasText(ctx, headline, PAD, height - 230, contentW, 60);
+  wrapCanvasText(ctx, headline, PAD, height - 258, contentW, 64);
 
-  ctx.font = "24px sans-serif";
-  ctx.fillStyle = "rgba(255,255,255,0.75)";
-  ctx.fillText(truncateToWidth(ctx, footer, contentW), PAD, height - 90);
+  // Logo: kotak membulat oranye berisi "J" + wordmark
+  const logoSize = 52;
+  const logoX = PAD;
+  const logoY = height - 148;
+  ctx.fillStyle = TRACK;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
+  else ctx.rect(logoX, logoY, logoSize, logoSize);
+  ctx.fill();
+
+  ctx.font = "900 27px sans-serif";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("J", logoX + logoSize / 2, logoY + logoSize / 2 + 1);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+
+  ctx.font = "900 30px sans-serif";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillText("Jejak", logoX + logoSize + 16, logoY + 24);
+
+  ctx.font = "20px sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.6)";
+  ctx.fillText(
+    truncateToWidth(ctx, footer.replace(/\s*·\s*Jejak$/, ""), contentW - logoSize - 16),
+    logoX + logoSize + 16,
+    logoY + 48
+  );
 
   canvas.toBlob((blob) => {
     if (!blob) return;
@@ -2821,22 +3040,38 @@ function DashboardPanel({ onNavigate }) {
 
 function ProgramSetupForm({ onStart }) {
   const [profile] = useProfile();
-  const [freq, setFreq] = useState("4");
-  const [level, setLevel] = useState(profile.level || "pemula");
+  const initialLevel = profile.level || "pemula";
+  const initialRules = rulesForLevel(initialLevel);
+  const [level, setLevel] = useState(initialLevel);
+  const [freq, setFreq] = useState(initialRules.defaultFreq);
   const [goal, setGoal] = useState("muscle");
   const [equipment, setEquipment] = useState(profile.equipment || "gym");
-  const [schemeMode, setSchemeMode] = useState("auto");
-  const [manualScheme, setManualScheme] = useState("upperlower");
+  const [manualScheme, setManualScheme] = useState(initialRules.defaultScheme);
   const [durationMode, setDurationMode] = useState("auto");
-  const [durationWeeksManual, setDurationWeeksManual] = useState("8");
+  const [durationWeeksManual, setDurationWeeksManual] = useState(initialRules.defaultDuration);
   const [dayMode, setDayMode] = useState("auto");
-  const [customDays, setCustomDays] = useState([0, 2, 4, 5]); // Senin, Rabu, Jumat, Sabtu
+  const [customDays, setCustomDays] = useState([0, 2, 4]); // Senin, Rabu, Jumat
   const [targetWeight, setTargetWeight] = useState("");
+  const [sessionOrder, setSessionOrder] = useState({}); // { "0": "Lower", "1": "Upper", ... }
+
+  const rules = rulesForLevel(level);
+
+  // Saat level diganti, sesuaikan otomatis pilihan yang tidak lagi berlaku
+  const handleLevelChange = (newLevel) => {
+    const r = rulesForLevel(newLevel);
+    setLevel(newLevel);
+    if (!r.freqOptions.includes(parseInt(freq, 10))) setFreq(r.defaultFreq);
+    if (!r.schemes.includes(manualScheme)) setManualScheme(r.defaultScheme);
+    if (!r.durations.includes(durationWeeksManual)) setDurationWeeksManual(r.defaultDuration);
+    if (dayMode === "manual" && !r.freqOptions.includes(customDays.length)) {
+      setCustomDays(FREQ_DAY_MAP[parseInt(r.defaultFreq, 10)] || [0, 2, 4]);
+    }
+  };
 
   const durationWeeks = durationMode === "auto" ? String(DURATION_RECOMMENDATIONS[goal].weeks) : durationWeeksManual;
   const freqNum = Math.min(Math.max(parseInt(freq, 10) || 3, 2), 6);
   const effectiveFreq = dayMode === "manual" ? customDays.length : freqNum;
-  const scheme = schemeMode === "auto" ? autoScheme(effectiveFreq) : manualScheme;
+  const scheme = manualScheme;
   const combined = combinedScheme(level, goal, false, isYouth(profile) || isSenior(profile));
   const numBlocks = Math.ceil(parseInt(durationWeeks, 10) / 4);
 
@@ -2848,7 +3083,18 @@ function ProgramSetupForm({ onStart }) {
     setCustomDays((prev) => (prev.includes(idx) ? prev.filter((d) => d !== idx) : [...prev, idx].sort()));
   };
 
-  const weekPreview = previewWeekPattern({ dayMode, freq: freqNum, customDays, scheme });
+  const weekPreview = previewWeekPattern({ dayMode, freq: freqNum, customDays, scheme, sessionOrder });
+  const orderWarnings = findBackToBackWarnings(weekPreview);
+  const availableSessions = SCHEME_LABELS[scheme].sessions.filter((s, i, arr) => arr.indexOf(s) === i);
+
+  const setDaySession = (dayIdx, label) => {
+    setSessionOrder((prev) => {
+      const next = { ...prev };
+      if (!label) delete next[String(dayIdx)];
+      else next[String(dayIdx)] = label;
+      return next;
+    });
+  };
 
   return (
     <div className="p-4 md:p-6 flex flex-col md:grid md:grid-cols-5 gap-4">
@@ -2896,6 +3142,21 @@ function ProgramSetupForm({ onStart }) {
           </div>
         )}
 
+        <Field label="Level pengalaman">
+          <Select
+            value={level}
+            onChange={handleLevelChange}
+            options={[
+              { value: "pemula", label: "Pemula (baru mulai / < 6 bulan)" },
+              { value: "menengah", label: "Menengah (rutin 6 bulan – 2 tahun)" },
+              { value: "lanjutan", label: "Lanjutan (rutin > 2 tahun)" },
+            ]}
+          />
+        </Field>
+        <div className="mb-5 -mt-3 p-3 rounded-lg text-xs" style={{ backgroundColor: "var(--c-page)", color: MUTED }}>
+          {rules.note}
+        </div>
+
         <Field label="Penentuan hari latihan">
           <Select
             value={dayMode}
@@ -2911,30 +3172,50 @@ function ProgramSetupForm({ onStart }) {
             <Select
               value={freq}
               onChange={setFreq}
-              options={[2, 3, 4, 5, 6].map((n) => ({ value: String(n), label: `${n}x per minggu` }))}
+              options={rules.freqOptions.map((n) => ({ value: String(n), label: `${n}x per minggu` }))}
             />
           </Field>
         ) : (
-          <Field label={`Pilih hari (${customDays.length} hari dipilih)`}>
+          <Field label={`Ketuk hari untuk dijadikan hari latihan (${customDays.length} dipilih)`}>
             <div className="flex flex-wrap gap-2 pt-1">
-              {DAY_NAMES.map((day, i) => (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => toggleDay(i)}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-sm"
-                  style={{
-                    backgroundColor: customDays.includes(i) ? TRACK : "transparent",
-                    color: customDays.includes(i) ? CHALK : GRAPHITE,
-                    border: `1px solid ${customDays.includes(i) ? TRACK : LINE}`,
-                  }}
-                >
-                  {day.slice(0, 3)}
-                </button>
-              ))}
+              {DAY_NAMES.map((day, i) => {
+                const picked = customDays.includes(i);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => toggleDay(i)}
+                    className="px-3 py-2 text-xs font-semibold rounded-lg"
+                    style={{
+                      backgroundColor: picked ? TRACK : "var(--c-page)",
+                      color: picked ? "#FFFFFF" : MUTED,
+                      border: `1px solid ${picked ? TRACK : LINE}`,
+                    }}
+                  >
+                    {day.slice(0, 3)}
+                  </button>
+                );
+              })}
             </div>
+            <p className="text-xs mt-2" style={{ color: MUTED }}>
+              <span style={{ color: TRACK, fontWeight: 600 }}>Oranye</span> = hari latihan · Abu-abu = hari istirahat
+            </p>
+            {!rules.freqOptions.includes(customDays.length) && (
+              <p className="text-xs mt-1" style={{ color: "#B7791F" }}>
+                ⚠ Level {level} disarankan {rules.freqOptions.join(" atau ")}x per minggu.
+              </p>
+            )}
           </Field>
         )}
+
+        <Field label="Skema program">
+          <Select
+            value={manualScheme}
+            onChange={setManualScheme}
+            options={rules.schemes.map((s) => ({ value: s, label: SCHEME_LABELS[s].name }))}
+          />
+        </Field>
+
         <Field label="Durasi program">
           <Select
             value={durationMode}
@@ -2966,17 +3247,6 @@ function ProgramSetupForm({ onStart }) {
             />
           </Field>
         )}
-        <Field label="Level pengalaman">
-          <Select
-            value={level}
-            onChange={setLevel}
-            options={[
-              { value: "pemula", label: "Pemula" },
-              { value: "menengah", label: "Menengah" },
-              { value: "lanjutan", label: "Lanjutan" },
-            ]}
-          />
-        </Field>
         <Field label="Peralatan">
           <Select
             value={equipment}
@@ -2987,31 +3257,6 @@ function ProgramSetupForm({ onStart }) {
             ]}
           />
         </Field>
-        <Field label="Skema program">
-          <Select
-            value={schemeMode}
-            onChange={setSchemeMode}
-            options={[
-              { value: "auto", label: "Otomatis sesuai frekuensi" },
-              { value: "manual", label: "Pilih manual" },
-            ]}
-          />
-        </Field>
-        {schemeMode === "manual" && (
-          <Field label="Pilih skema">
-            <Select
-              value={manualScheme}
-              onChange={setManualScheme}
-              options={[
-                { value: "fullbody", label: "Full body" },
-                { value: "upperlower", label: "Upper-lower" },
-                { value: "ppl", label: "Push-pull-legs" },
-                { value: "bodypart", label: "Split otot per hari (Dada/Punggung/dst)" },
-                { value: "pplx2", label: "Push-pull-legs 2x/minggu" },
-              ]}
-            />
-          </Field>
-        )}
         <Footnote>
           {TRAINING_GOALS[goal].note} Kardio otomatis ditambahkan di hari
           kaki/lower{goal === "cutting" ? " — mayoritas santai (LISS), 1x/minggu diselingi interval (HIIT) mengikuti pola 80/20 (minggu deload tetap LISS supaya pemulihan optimal)" : ""}.
@@ -3065,21 +3310,59 @@ function ProgramSetupForm({ onStart }) {
             </span>
           </div>
         </div>
-        <div className="flex flex-col gap-1 mb-6">
+        <div className="flex flex-col gap-1 mb-4">
           {weekPreview.map((d) => (
-            <div key={d.day} className="flex items-center gap-3 py-1.5" style={{ borderTop: `1px solid ${LINE}` }}>
+            <div key={d.day} className="flex items-center gap-3 py-2" style={{ borderTop: `1px solid ${LINE}` }}>
               <span className="text-xs w-16 shrink-0" style={{ color: MUTED }}>
                 {d.day}
               </span>
-              <span className="text-sm font-semibold" style={{ color: d.rest ? MUTED : GRAPHITE }}>
-                {d.rest ? "Istirahat" : d.label}
-              </span>
+              {d.rest ? (
+                <span className="text-sm" style={{ color: MUTED }}>Istirahat</span>
+              ) : availableSessions.length > 1 ? (
+                <select
+                  value={d.label}
+                  onChange={(e) => setDaySession(d.dayIdx, e.target.value)}
+                  className="text-sm font-semibold bg-transparent outline-none py-1 px-2 rounded-lg"
+                  style={{ color: GRAPHITE, border: `1px solid ${d.isCustom ? TRACK : LINE}` }}
+                >
+                  {availableSessions.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              ) : (
+                <span className="text-sm font-semibold" style={{ color: GRAPHITE }}>{d.label}</span>
+              )}
             </div>
           ))}
         </div>
+
+        {availableSessions.length > 1 && (
+          <p className="text-xs mb-3" style={{ color: MUTED }}>
+            Sesi tiap hari bisa Anda tukar sesuai kebutuhan lewat pilihan di atas.
+            {Object.keys(sessionOrder).length > 0 && (
+              <>
+                {" "}
+                <button onClick={() => setSessionOrder({})} className="font-semibold" style={{ color: TRACK }}>
+                  Kembalikan ke urutan otomatis
+                </button>
+              </>
+            )}
+          </p>
+        )}
+
+        {orderWarnings.length > 0 && (
+          <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: "#FFF3CD" }}>
+            {orderWarnings.map((w) => (
+              <p key={w} className="text-xs" style={{ color: "#7A5A20" }}>
+                ⚠ {w}. Otot yang sama sebaiknya diberi jeda ±48 jam untuk pemulihan optimal.
+              </p>
+            ))}
+          </div>
+        )}
+
         <p className="text-xs mb-6" style={{ color: MUTED }}>
           Program {durationWeeks} minggu ({numBlocks} blok) akan dibuatkan
-          jadwal harian penuh mulai hari ini mengikuti pola di atas, lengkap
+          jadwal harian penuh mulai dari hari latihan terdekat, lengkap
           dengan minggu deload otomatis dan evaluasi tiap minggu.
         </p>
         <button
@@ -3089,11 +3372,11 @@ function ProgramSetupForm({ onStart }) {
               level,
               goal,
               equipment,
-              schemeMode,
               manualScheme,
               durationWeeks: parseInt(durationWeeks, 10),
               dayMode,
               customDays,
+              sessionOrder,
               targetWeight:
                 (goal === "cutting" || goal === "bulking") && effectiveTargetWeight
                   ? parseFloat(effectiveTargetWeight)
@@ -3642,9 +3925,10 @@ function ProgramDashboard({ program, onComplete, onReset }) {
 
   const schemeName =
     SCHEME_LABELS[
-      program.schemeMode === "auto"
-        ? autoScheme(program.dayMode === "manual" ? (program.customDays || []).length : Math.min(Math.max(parseInt(program.freq, 10) || 3, 2), 6))
-        : program.manualScheme
+      program.manualScheme ||
+        (program.schemeMode === "auto"
+          ? autoScheme(program.dayMode === "manual" ? (program.customDays || []).length : Math.min(Math.max(parseInt(program.freq, 10) || 3, 2), 6))
+          : "fullbody")
     ].name;
 
   // Sesi berikutnya (dipakai saat hari ini istirahat / program belum mulai hari ini)
@@ -5582,6 +5866,7 @@ export default function App() {
               {tab === "riwayat" && <HistoryPanel onNavigate={setTab} />}
               {tab === "profil" && <ProfilePanel onNavigate={setTab} />}
               {tab === "glossary" && <GlossaryPanel onNavigate={setTab} />}
+              {tab === "guide" && <GuidePanel onNavigate={setTab} />}
               {tab === "measurements" && <MeasurementsPanel onNavigate={setTab} />}
               {tab === "prs" && <PersonalRecordsPanel onNavigate={setTab} />}
             </div>

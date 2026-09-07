@@ -142,6 +142,35 @@
   }
   .why-label { font-size: 14px; color: var(--muted); }
 
+  section.install-guide {
+    background: var(--white);
+    padding: 70px 0;
+  }
+  .install-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 8px;
+  }
+  .install-card {
+    background: var(--page);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .install-os {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .install-steps {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
   section.cta-final {
     padding: 80px 0;
     text-align: center;
@@ -254,6 +283,33 @@
       <div class="why-item">
         <div class="why-num">0</div>
         <div class="why-label">Data Anda dikirim ke server luar</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="install-guide">
+  <div class="wrap">
+    <h2 class="section-title">Pasang di layar utama HP Anda</h2>
+    <p class="section-sub">Buka lewat ikon seperti aplikasi biasa — tanpa address bar, dan tetap jalan tanpa internet.</p>
+    <div class="install-grid">
+      <div class="install-card">
+        <div class="install-os">Android (Chrome)</div>
+        <ol class="install-steps">
+          <li>Buka aplikasi Jejak di Chrome</li>
+          <li>Ketuk menu titik tiga di pojok kanan atas</li>
+          <li>Pilih <strong>"Install app"</strong> atau <strong>"Tambahkan ke layar utama"</strong></li>
+          <li>Ketuk <strong>"Install"</strong> untuk mengonfirmasi</li>
+        </ol>
+      </div>
+      <div class="install-card">
+        <div class="install-os">iPhone / iPad (Safari)</div>
+        <ol class="install-steps">
+          <li>Buka aplikasi Jejak di Safari</li>
+          <li>Ketuk tombol Bagikan (kotak dengan panah ke atas) di bawah layar</li>
+          <li>Gulir ke bawah, pilih <strong>"Add to Home Screen"</strong></li>
+          <li>Ketuk <strong>"Add"</strong> di pojok kanan atas</li>
+        </ol>
       </div>
     </div>
   </div>

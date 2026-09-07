@@ -5240,6 +5240,93 @@ export function ActivationGate({ children }) {
   );
 }
 
+function InstallPrompt() {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showIosGuide, setShowIosGuide] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined" || !window.localStorage) return true;
+    return window.localStorage.getItem("jejak_install_dismissed") === "1";
+  });
+
+  const isStandalone =
+    typeof window !== "undefined" &&
+    (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true);
+
+  const isIos =
+    typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const dismiss = () => {
+    setDismissed(true);
+    if (typeof window !== "undefined" && window.localStorage) {
+      try {
+        window.localStorage.setItem("jejak_install_dismissed", "1");
+      } catch (e) {}
+    }
+  };
+
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+      if (choice && choice.outcome === "accepted") dismiss();
+    } else if (isIos) {
+      setShowIosGuide((v) => !v);
+    }
+  };
+
+  // Sudah terpasang, sudah ditutup, atau tidak ada cara install → jangan tampilkan
+  if (isStandalone || dismissed) return null;
+  if (!deferredPrompt && !isIos) return null;
+
+  return (
+    <div className="mx-4 md:mx-6 mt-4 p-4 rounded-xl" style={{ backgroundColor: "var(--c-surface)", border: `1px solid ${LINE}` }}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <IconBadge icon={Download} color={ICON_COLORS.latihan} />
+          <div className="min-w-0">
+            <span className="text-sm font-semibold" style={{ color: GRAPHITE }}>
+              Pasang Jejak di layar utama
+            </span>
+            <p className="text-xs" style={{ color: MUTED }}>
+              Buka lewat ikon seperti aplikasi biasa, tanpa address bar — dan tetap bisa dipakai offline.
+            </p>
+          </div>
+        </div>
+        <button onClick={dismiss} className="text-xs shrink-0" style={{ color: MUTED }} aria-label="Tutup">
+          ✕
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-2 mt-3">
+        <button
+          onClick={handleInstall}
+          className="px-4 py-2 text-xs font-semibold rounded-full"
+          style={{ backgroundColor: TRACK, color: "#FFFFFF" }}
+        >
+          {isIos && !deferredPrompt ? (showIosGuide ? "Sembunyikan cara" : "Lihat caranya") : "Pasang Sekarang"}
+        </button>
+      </div>
+      {showIosGuide && (
+        <div className="mt-3 p-3 rounded-lg text-xs" style={{ backgroundColor: "var(--c-page)", color: MUTED }}>
+          <p className="font-semibold mb-1" style={{ color: GRAPHITE }}>Di iPhone/iPad (Safari):</p>
+          <p>1. Ketuk tombol Bagikan (kotak dengan panah ke atas) di bagian bawah layar</p>
+          <p>2. Gulir ke bawah, pilih <strong>"Add to Home Screen"</strong></p>
+          <p>3. Ketuk <strong>"Add"</strong> di pojok kanan atas</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [tab, setTab] = useState("dashboard");
   const [mounted, setMounted] = useState(false);
@@ -5482,6 +5569,7 @@ export default function App() {
           </header>
 
           <main className="max-w-4xl md:max-w-none">
+            <InstallPrompt />
             <div key={tab} className="panel-anim">
               {tab === "vo2" && <Vo2Panel />}
               {tab === "hr" && <HrPanel />}

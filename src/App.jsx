@@ -30,6 +30,285 @@ const STATUS_COLORS = {
   neutral: { bg: "#EEF0F5", text: "#5B6472" },
 };
 
+function InfoTooltip({ text }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="relative inline-flex items-center">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        className="inline-flex items-center justify-center rounded-full ml-1"
+        style={{ width: 16, height: 16, color: MUTED }}
+        aria-label="Info"
+      >
+        <Info size={13} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            className="absolute z-50 left-0 top-6 w-64 p-3 rounded-lg text-xs"
+            style={{ backgroundColor: "#1A1D29", color: "#EEF1EA", boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}
+          >
+            {text}
+          </div>
+        </>
+      )}
+    </span>
+  );
+}
+
+const GLOSSARY_TERMS = [
+  { term: "RPE (Rate of Perceived Exertion)", def: "Seberapa berat rasanya latihan Anda, skala 1–10. Angka rendah = masih santai, angka tinggi (9-10) = sudah maksimal, tidak sanggup tambah repetisi lagi." },
+  { term: "1RM (One-Rep Max)", def: "Estimasi beban terberat yang bisa Anda angkat untuk 1 kali repetisi penuh. Dihitung dari beban+repetisi yang sudah Anda lakukan, bukan harus benar-benar dicoba maksimal (lebih aman)." },
+  { term: "Deload", def: "Minggu 'santai' terjadwal (biasanya tiap minggu ke-4) di mana beban/volume latihan sengaja diturunkan supaya tubuh sempat pulih sebelum lanjut ke fase berikutnya." },
+  { term: "Mesocycle", def: "Satu blok latihan berdurasi beberapa minggu (biasanya 4) dengan fokus tertentu, diakhiri minggu deload." },
+  { term: "Progressive Overload", def: "Prinsip dasar: supaya otot terus berkembang, beban/repetisi/volume latihan harus naik bertahap seiring waktu — tidak boleh stagnan di angka yang sama terus-menerus." },
+  { term: "Linear Progression", def: "Cara menaikkan beban paling sederhana: naikkan sedikit beban di setiap sesi. Cocok untuk pemula yang masih cepat beradaptasi." },
+  { term: "Double Progression", def: "Naikkan repetisi dulu sampai batas atas target, baru setelah itu naikkan beban dan ulang dari repetisi rendah lagi. Cocok untuk level menengah." },
+  { term: "HIIT (High-Intensity Interval Training)", def: "Kardio interval: bergantian antara gerakan sangat cepat/berat dan jeda santai, contoh 30 detik lari cepat lalu 90 detik jalan, diulang beberapa kali." },
+  { term: "LISS (Low-Intensity Steady-State)", def: "Kardio santai dengan tempo stabil, tidak berubah-ubah — contoh jalan cepat atau jogging santai selama beberapa menit, masih bisa sambil ngobrol." },
+  { term: "VO2 Maks", def: "Ukuran seberapa efisien tubuh Anda menggunakan oksigen saat berolahraga maksimal — indikator umum tingkat kebugaran kardiovaskular." },
+  { term: "BMI / IMT (Indeks Massa Tubuh)", def: "Perbandingan berat badan terhadap tinggi badan, dipakai sebagai indikator kasar kategori berat badan (kurus/normal/berlebih)." },
+  { term: "Set x Repetisi", def: "Set = satu putaran gerakan sampai selesai (misal 10 kali angkat). Repetisi = jumlah angkatan dalam satu set. Contoh '4 set x 8-12 repetisi' = ulangi 4 putaran, tiap putaran 8-12 kali angkat." },
+  { term: "Makro (Protein/Karbohidrat/Lemak)", def: "Tiga kelompok nutrisi utama penyumbang kalori. Protein untuk membangun otot, karbohidrat untuk energi, lemak untuk hormon & energi cadangan." },
+  { term: "Cutting", def: "Fase menurunkan lemak tubuh, biasanya lewat defisit kalori (makan sedikit lebih sedikit dari kebutuhan harian)." },
+  { term: "Bulking", def: "Fase menaikkan berat badan/massa otot, biasanya lewat surplus kalori (makan sedikit lebih banyak dari kebutuhan harian)." },
+  { term: "Split (Upper-Lower, Push-Pull-Legs, dll)", def: "Cara membagi kelompok otot ke hari-hari latihan berbeda dalam seminggu, supaya tiap kelompok otot dapat waktu istirahat sebelum dilatih lagi." },
+  { term: "Beban Latihan Mingguan", def: "Estimasi total 'tekanan' latihan seminggu, dihitung dari RPE dikali durasi tiap sesi lalu dijumlah. Indikator kasar untuk kesadaran diri — bukan alat prediksi cedera yang pasti akurat." },
+];
+
+function GlossaryPanel({ onNavigate }) {
+  return (
+    <div className="p-4 md:p-6">
+      <button onClick={() => onNavigate && onNavigate("profil")} className="text-xs font-semibold mb-4" style={{ color: TRACK }}>
+        ← Kembali ke Profil
+      </button>
+      <Card className="p-6 md:p-8">
+        <div className="flex items-center gap-3 mb-2">
+          <IconBadge icon={Info} color={ICON_COLORS.profil} />
+          <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+            Kamus Istilah
+          </span>
+        </div>
+        <p className="text-xs mb-5" style={{ color: MUTED }}>
+          Penjelasan istilah-istilah kepelatihan yang dipakai di aplikasi ini, dalam bahasa sederhana.
+        </p>
+        <div className="flex flex-col gap-4">
+          {GLOSSARY_TERMS.map((g) => (
+            <div key={g.term} className="pb-4" style={{ borderBottom: `1px solid ${LINE}` }}>
+              <div className="text-sm font-bold" style={{ color: GRAPHITE }}>{g.term}</div>
+              <p className="text-xs mt-1" style={{ color: MUTED }}>{g.def}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function MeasurementsPanel({ onNavigate }) {
+  const [waist, setWaist] = useState("");
+  const [chest, setChest] = useState("");
+  const [arm, setArm] = useState("");
+  const { addEntry: addWaist } = useHistory("history:waist");
+  const { addEntry: addChest } = useHistory("history:chest");
+  const { addEntry: addArm } = useHistory("history:arm");
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    if (waist) addWaist(parseFloat(waist));
+    if (chest) addChest(parseFloat(chest));
+    if (arm) addArm(parseFloat(arm));
+    setWaist("");
+    setChest("");
+    setArm("");
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1800);
+  };
+
+  return (
+    <div className="p-4 md:p-6">
+      <button onClick={() => onNavigate && onNavigate("profil")} className="text-xs font-semibold mb-4" style={{ color: TRACK }}>
+        ← Kembali ke Profil
+      </button>
+      <Card className="p-6 md:p-8 mb-4">
+        <div className="flex items-center gap-3 mb-2">
+          <IconBadge icon={Ruler} color={ICON_COLORS.body} />
+          <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+            Pengukuran Tubuh
+          </span>
+        </div>
+        <p className="text-xs mb-5" style={{ color: MUTED }}>
+          Lingkar pinggang, dada, dan lengan — pelacakan tambahan di luar berat badan. Berguna terutama untuk yang fokus menambah otot, karena angka di timbangan saja bisa menipu (naik tapi itu bisa lemak, bukan otot).
+        </p>
+        <Field label="Lingkar pinggang" unit="cm">
+          <NumberInput value={waist} onChange={setWaist} placeholder="80" min={40} max={200} />
+        </Field>
+        <Field label="Lingkar dada" unit="cm">
+          <NumberInput value={chest} onChange={setChest} placeholder="95" min={50} max={200} />
+        </Field>
+        <Field label="Lingkar lengan" unit="cm">
+          <NumberInput value={arm} onChange={setArm} placeholder="30" min={15} max={70} />
+        </Field>
+        <button
+          onClick={handleSave}
+          disabled={!waist && !chest && !arm}
+          className="px-5 py-2.5 text-sm font-semibold rounded-full disabled:opacity-40"
+          style={{ backgroundColor: saved ? "#1F9254" : TRACK, color: "#FFFFFF" }}
+        >
+          {saved ? "Tersimpan" : "Simpan pengukuran hari ini"}
+        </button>
+      </Card>
+      <Card className="p-6 md:p-8">
+        <HistorySection title="Lingkar Pinggang" unit="cm" storageKey="history:waist" color={TRACK} />
+        <HistorySection title="Lingkar Dada" unit="cm" storageKey="history:chest" color={TURF} />
+        <HistorySection title="Lingkar Lengan" unit="cm" storageKey="history:arm" color={GOLD} />
+      </Card>
+    </div>
+  );
+}
+
+function PersonalRecordsPanel({ onNavigate }) {
+  const [prs, setPrs] = useState(() => {
+    if (typeof window === "undefined" || !window.localStorage) return {};
+    try {
+      const raw = window.localStorage.getItem("history:prs");
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+  const [editing, setEditing] = useState(null); // nama gerakan yang sedang diedit
+  const [editWeight, setEditWeight] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
+  const persist = (next) => {
+    setPrs(next);
+    if (typeof window !== "undefined" && window.localStorage) {
+      try {
+        window.localStorage.setItem("history:prs", JSON.stringify(next));
+      } catch (e) {}
+    }
+  };
+
+  const handleDelete = (name) => {
+    const next = { ...prs };
+    delete next[name];
+    persist(next);
+    setConfirmDelete(null);
+  };
+
+  const handleSaveEdit = (name) => {
+    const val = parseFloat(editWeight);
+    if (isNaN(val) || val <= 0) return;
+    persist({ ...prs, [name]: { ...prs[name], weight: val } });
+    setEditing(null);
+    setEditWeight("");
+  };
+
+  const entries = Object.entries(prs).sort((a, b) => b[1].weight - a[1].weight);
+
+  return (
+    <div className="p-4 md:p-6">
+      <button onClick={() => onNavigate && onNavigate("profil")} className="text-xs font-semibold mb-4" style={{ color: TRACK }}>
+        ← Kembali ke Profil
+      </button>
+      <Card className="p-6 md:p-8">
+        <div className="flex items-center gap-3 mb-2">
+          <IconBadge icon={Gauge} color={ICON_COLORS.onerm} />
+          <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+            Rekor Pribadi (PR)
+          </span>
+        </div>
+        <p className="text-xs mb-5" style={{ color: MUTED }}>
+          Beban tertinggi yang pernah tercatat per gerakan, dari semua program latihan Anda (tidak hilang meski ganti program). Salah ketik? Bisa dikoreksi atau dihapus di sini.
+        </p>
+        {entries.length === 0 ? (
+          <p className="text-xs" style={{ color: MUTED }}>
+            Belum ada rekor tercatat — akan otomatis muncul di sini begitu Anda mencetak rekor baru saat latihan.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {entries.map(([name, pr], i) => (
+              <div key={name} className="py-2.5" style={{ borderTop: i === 0 ? "none" : `1px solid ${LINE}` }}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate" style={{ color: GRAPHITE }}>{name}</div>
+                    <div className="text-xs" style={{ color: MUTED }}>{formatDate(pr.date)}</div>
+                  </div>
+                  {editing === name ? (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <input
+                        type="number"
+                        value={editWeight}
+                        onChange={(e) => setEditWeight(e.target.value)}
+                        className="w-16 text-sm text-right bg-transparent border-b outline-none py-1"
+                        style={{ borderColor: LINE, color: GRAPHITE }}
+                      />
+                      <span className="text-xs" style={{ color: MUTED }}>kg</span>
+                      <button onClick={() => handleSaveEdit(name)} className="text-xs font-semibold" style={{ color: "#1F9254" }}>
+                        Simpan
+                      </button>
+                      <button onClick={() => setEditing(null)} className="text-xs" style={{ color: MUTED }}>
+                        Batal
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-lg font-black" style={{ color: TRACK }}>
+                        {pr.weight} <span className="text-xs font-normal" style={{ color: MUTED }}>kg{pr.reps ? ` x ${pr.reps}` : ""}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setEditing(name);
+                          setEditWeight(String(pr.weight));
+                          setConfirmDelete(null);
+                        }}
+                        className="text-xs"
+                        style={{ color: MUTED }}
+                      >
+                        Edit
+                      </button>
+                      <button onClick={() => setConfirmDelete(name)} className="text-xs" style={{ color: "#C0392B" }}>
+                        Hapus
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {confirmDelete === name && (
+                  <div className="mt-2 p-3 rounded-lg flex flex-wrap items-center justify-between gap-2" style={{ backgroundColor: "#FDE8E7" }}>
+                    <span className="text-xs" style={{ color: "#7A2622" }}>Hapus rekor "{name}"?</span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleDelete(name)}
+                        className="px-3 py-1 text-xs font-semibold rounded-full"
+                        style={{ backgroundColor: "#C0392B", color: "#FFFFFF" }}
+                      >
+                        Ya, hapus
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(null)}
+                        className="px-3 py-1 text-xs font-semibold rounded-full"
+                        style={{ backgroundColor: "var(--c-surface)", color: GRAPHITE, border: `1px solid ${LINE}` }}
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
 function Card({ children, className = "", style = {} }) {
   return (
     <div
@@ -315,45 +594,52 @@ function Footnote({ children }) {
 
 // ---------- RIWAYAT (progress tracking) ----------
 
-const hasStorage = typeof window !== "undefined" && !!window.localStorage;
+const hasStorage = typeof window !== "undefined" && !!window.storage;
 
 function useHistory(storageKey) {
   const [entries, setEntries] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!hasStorage) {
-      setLoaded(true);
-      return;
+    let cancelled = false;
+    async function load() {
+      if (!hasStorage) {
+        if (!cancelled) setLoaded(true);
+        return;
+      }
+      try {
+        const res = await window.storage.get(storageKey, false);
+        if (!cancelled) setEntries(res ? JSON.parse(res.value) : []);
+      } catch (e) {
+        if (!cancelled) setEntries([]);
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
     }
-    try {
-      const raw = window.localStorage.getItem(storageKey);
-      setEntries(raw ? JSON.parse(raw) : []);
-    } catch (e) {
-      setEntries([]);
-    } finally {
-      setLoaded(true);
-    }
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [storageKey]);
 
-  const addEntry = (value, meta) => {
+  const addEntry = async (value, meta) => {
     const entry = { date: new Date().toISOString(), value, ...meta };
     const next = [...entries, entry].slice(-30);
     setEntries(next);
     if (hasStorage) {
       try {
-        window.localStorage.setItem(storageKey, JSON.stringify(next));
+        await window.storage.set(storageKey, JSON.stringify(next), false);
       } catch (e) {
-        // penyimpanan penuh/diblokir browser — tetap tampil untuk sesi ini
+        // gagal tersimpan permanen, tapi tetap tampil untuk sesi ini
       }
     }
   };
 
-  const clearAll = () => {
+  const clearAll = async () => {
     setEntries([]);
     if (hasStorage) {
       try {
-        window.localStorage.removeItem(storageKey);
+        await window.storage.set(storageKey, JSON.stringify([]), false);
       } catch (e) {}
     }
   };
@@ -553,7 +839,85 @@ function useProfile() {
   return [profile, updateProfile];
 }
 
-function ProfilePanel() {
+// ---------- BACKUP & RESTORE DATA ----------
+
+const BACKUP_KEYS = [
+  "userProfile",
+  "activeProgram",
+  "history:vo2",
+  "history:bmi",
+  "history:bodyfat",
+  "history:calories",
+  "history:1rm",
+  "history:hidrasi",
+  "history:programs",
+  "history:prs",
+  "history:waist",
+  "history:chest",
+  "history:arm",
+  "hasOnboarded",
+  "jejak_activated",
+  "jejak_license_code",
+  "jejak_notif_enabled",
+];
+
+function exportBackup() {
+  if (typeof window === "undefined" || !window.localStorage) return false;
+  const data = {};
+  BACKUP_KEYS.forEach((key) => {
+    try {
+      const val = window.localStorage.getItem(key);
+      if (val !== null) data[key] = val;
+    } catch (e) {}
+  });
+  const payload = {
+    app: "Jejak",
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    data,
+  };
+  try {
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `jejak-backup-${toDateStr(new Date())}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function importBackupFile(file, onDone) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!parsed || typeof parsed !== "object" || !parsed.data) {
+        onDone({ ok: false, message: "Format file tidak dikenali." });
+        return;
+      }
+      let count = 0;
+      Object.entries(parsed.data).forEach(([key, val]) => {
+        if (BACKUP_KEYS.includes(key) && typeof val === "string") {
+          try {
+            window.localStorage.setItem(key, val);
+            count++;
+          } catch (e) {}
+        }
+      });
+      onDone({ ok: true, count });
+    } catch (e) {
+      onDone({ ok: false, message: "Gagal membaca file — pastikan ini file backup Jejak yang asli." });
+    }
+  };
+  reader.onerror = () => onDone({ ok: false, message: "Gagal membaca file." });
+  reader.readAsText(file);
+}
+
+function ProfilePanel({ onNavigate }) {
   const [profile, updateProfile] = useProfile();
   const [form, setForm] = useState({
     name: profile.name || "",
@@ -565,6 +929,47 @@ function ProfilePanel() {
     equipment: profile.equipment || "gym",
   });
   const [saved, setSaved] = useState(false);
+  const [exportedJustNow, setExportedJustNow] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const [confirmImportFile, setConfirmImportFile] = useState(null);
+  const importInputRef = useRef(null);
+  const { entries: bodyFatEntries } = useHistory("history:bodyfat");
+  const [notifEnabled, setNotifEnabled] = useState(() => {
+    if (typeof window === "undefined" || !window.localStorage) return false;
+    return window.localStorage.getItem("jejak_notif_enabled") === "1";
+  });
+  const [notifError, setNotifError] = useState(null);
+
+  const latestBodyFat = bodyFatEntries.length > 0 ? bodyFatEntries[bodyFatEntries.length - 1].value : null;
+  const heightM = profile.height ? parseFloat(profile.height) / 100 : null;
+  const weightKgNum = profile.weight ? parseFloat(profile.weight) : null;
+  let ffmi = null;
+  if (heightM && weightKgNum && latestBodyFat != null) {
+    const leanMass = weightKgNum * (1 - latestBodyFat / 100);
+    ffmi = +(leanMass / (heightM * heightM) + 6.1 * (1.8 - heightM)).toFixed(1);
+  }
+
+  const toggleNotif = async () => {
+    setNotifError(null);
+    if (!notifEnabled) {
+      if (typeof Notification === "undefined") {
+        setNotifError("Browser ini tidak mendukung notifikasi.");
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") {
+        setNotifError("Izin notifikasi ditolak — aktifkan lewat pengaturan browser kalau berubah pikiran.");
+        return;
+      }
+    }
+    const next = !notifEnabled;
+    setNotifEnabled(next);
+    if (typeof window !== "undefined" && window.localStorage) {
+      try {
+        window.localStorage.setItem("jejak_notif_enabled", next ? "1" : "0");
+      } catch (e) {}
+    }
+  };
 
   const set = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -572,6 +977,30 @@ function ProfilePanel() {
     updateProfile(form);
     setSaved(true);
     setTimeout(() => setSaved(false), 1800);
+  };
+
+  const handleExport = () => {
+    const ok = exportBackup();
+    if (ok) {
+      setExportedJustNow(true);
+      setTimeout(() => setExportedJustNow(false), 2000);
+    }
+  };
+
+  const handleFilePicked = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) setConfirmImportFile(file);
+    e.target.value = "";
+  };
+
+  const confirmImport = () => {
+    importBackupFile(confirmImportFile, (result) => {
+      setImportResult(result);
+      setConfirmImportFile(null);
+      if (result.ok) {
+        setTimeout(() => window.location.reload(), 1200);
+      }
+    });
   };
 
   return (
@@ -652,6 +1081,192 @@ function ProfilePanel() {
           style={{ backgroundColor: saved ? "#1F9254" : TRACK, color: "#FFFFFF" }}
         >
           {saved ? "Tersimpan" : "Simpan profil"}
+        </button>
+      </div>
+
+      <div className="order-3 md:col-span-5 px-1 pt-2">
+        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+          Data & analisis
+        </span>
+      </div>
+
+      {ffmi != null && (
+        <div
+          className="order-3 md:col-span-5 p-6 md:p-8 rounded-xl flex items-center gap-4"
+          style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}
+        >
+          <IconBadge icon={Gauge} color={ICON_COLORS.onerm} />
+          <div>
+            <span className="text-sm font-semibold" style={{ color: GRAPHITE }}>
+              FFMI (Fat-Free Mass Index): {ffmi}
+            </span>
+            <p className="text-xs mt-1" style={{ color: MUTED }}>
+              Estimasi massa otot relatif terhadap tinggi badan, dihitung dari berat & persentase lemak terakhir ({latestBodyFat}%). Angka 20-25 umum dicapai secara alami; di atas 25 biasanya butuh latihan intensif bertahun-tahun.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div
+        className="order-3 md:col-span-5 p-6 md:p-8 rounded-xl flex items-center justify-between gap-4"
+        style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}
+      >
+        <div className="flex items-center gap-3">
+          <IconBadge icon={Home} color={ICON_COLORS.latihan} />
+          <div>
+            <span className="text-sm font-semibold" style={{ color: GRAPHITE }}>Pengingat latihan</span>
+            <p className="text-xs" style={{ color: MUTED }}>
+              Notifikasi ringan saat Anda buka aplikasi dan ada sesi hari ini yang belum ditandai selesai. Bukan pengingat terjadwal (browser membatasi ini tanpa server tambahan).
+            </p>
+            {notifError && <p className="text-xs mt-1" style={{ color: "#C0392B" }}>{notifError}</p>}
+          </div>
+        </div>
+        <button
+          onClick={toggleNotif}
+          className="px-4 py-2 text-xs font-semibold rounded-full shrink-0"
+          style={{ backgroundColor: notifEnabled ? "#1F9254" : "var(--c-page)", color: notifEnabled ? "#FFFFFF" : GRAPHITE }}
+        >
+          {notifEnabled ? "Aktif" : "Aktifkan"}
+        </button>
+      </div>
+
+      <div
+        className="order-3 md:col-span-5 p-6 md:p-8 rounded-xl"
+        style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <IconBadge icon={Download} color={ICON_COLORS.riwayat} />
+          <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+            Backup & Restore Data
+          </span>
+        </div>
+        <p className="text-xs mb-4" style={{ color: MUTED }}>
+          Semua data Anda (profil, program latihan, riwayat) tersimpan hanya
+          di perangkat ini. Unduh cadangan secara berkala, atau pakai untuk
+          memindahkan data ke HP baru.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-full"
+            style={{ backgroundColor: exportedJustNow ? "#1F9254" : "var(--c-page)", color: exportedJustNow ? "#FFFFFF" : GRAPHITE }}
+          >
+            <Download size={15} />
+            {exportedJustNow ? "Berhasil diunduh" : "Ekspor Data"}
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json"
+            onChange={handleFilePicked}
+            className="hidden"
+          />
+          <button
+            onClick={() => importInputRef.current && importInputRef.current.click()}
+            className="px-4 py-2.5 text-sm font-semibold rounded-full"
+            style={{ backgroundColor: "var(--c-page)", color: GRAPHITE }}
+          >
+            Impor Data
+          </button>
+        </div>
+
+        {confirmImportFile && (
+          <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: "#FDE8E7", border: "1px solid #F5C2BF" }}>
+            <p className="text-sm" style={{ color: "#7A2622" }}>
+              Data saat ini di perangkat ini akan <strong>ditimpa</strong> oleh
+              isi file "{confirmImportFile.name}". Lanjutkan?
+            </p>
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={confirmImport}
+                className="px-3 py-1.5 text-xs font-semibold rounded-full"
+                style={{ backgroundColor: "#C0392B", color: "#FFFFFF" }}
+              >
+                Ya, timpa dengan file ini
+              </button>
+              <button
+                onClick={() => setConfirmImportFile(null)}
+                className="px-3 py-1.5 text-xs font-semibold rounded-full"
+                style={{ backgroundColor: "var(--c-surface)", color: GRAPHITE, border: `1px solid ${LINE}` }}
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        )}
+
+        {importResult && (
+          <p className="text-xs mt-3" style={{ color: importResult.ok ? "#1F9254" : "#C0392B" }}>
+            {importResult.ok
+              ? `Berhasil memulihkan ${importResult.count} bagian data. Memuat ulang halaman...`
+              : importResult.message}
+          </p>
+        )}
+      </div>
+
+      <div className="order-4 md:col-span-5 px-1 pt-2">
+        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+          Halaman lain
+        </span>
+      </div>
+
+      <div
+        className="order-4 md:col-span-5 p-6 md:p-8 rounded-xl flex items-center justify-between gap-4"
+        style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}
+      >
+        <div className="flex items-center gap-3">
+          <IconBadge icon={Ruler} color={ICON_COLORS.body} />
+          <div>
+            <span className="text-sm font-semibold" style={{ color: GRAPHITE }}>Pengukuran tubuh</span>
+            <p className="text-xs" style={{ color: MUTED }}>Lingkar pinggang, dada, dan lengan — di luar berat badan.</p>
+          </div>
+        </div>
+        <button
+          onClick={() => onNavigate && onNavigate("measurements")}
+          className="px-4 py-2 text-xs font-semibold rounded-full shrink-0"
+          style={{ backgroundColor: "var(--c-page)", color: GRAPHITE }}
+        >
+          Buka
+        </button>
+      </div>
+
+      <div
+        className="order-4 md:col-span-5 p-6 md:p-8 rounded-xl flex items-center justify-between gap-4"
+        style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}
+      >
+        <div className="flex items-center gap-3">
+          <IconBadge icon={Gauge} color={ICON_COLORS.onerm} />
+          <div>
+            <span className="text-sm font-semibold" style={{ color: GRAPHITE }}>Rekor pribadi (PR)</span>
+            <p className="text-xs" style={{ color: MUTED }}>Beban tertinggi per gerakan, tersimpan permanen lintas program.</p>
+          </div>
+        </div>
+        <button
+          onClick={() => onNavigate && onNavigate("prs")}
+          className="px-4 py-2 text-xs font-semibold rounded-full shrink-0"
+          style={{ backgroundColor: "var(--c-page)", color: GRAPHITE }}
+        >
+          Buka
+        </button>
+      </div>
+
+      <div
+        className="order-4 md:col-span-5 p-6 md:p-8 rounded-xl flex items-center justify-between gap-4"
+        style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}
+      >
+        <div className="flex items-center gap-3">
+          <IconBadge icon={Info} color={ICON_COLORS.profil} />
+          <div>
+            <span className="text-sm font-semibold" style={{ color: GRAPHITE }}>Bingung dengan istilah di aplikasi ini?</span>
+            <p className="text-xs" style={{ color: MUTED }}>RPE, 1RM, deload, dan istilah lain dijelaskan dalam bahasa sederhana.</p>
+          </div>
+        </div>
+        <button
+          onClick={() => onNavigate && onNavigate("glossary")}
+          className="px-4 py-2 text-xs font-semibold rounded-full shrink-0"
+          style={{ backgroundColor: "var(--c-page)", color: GRAPHITE }}
+        >
+          Lihat Kamus Istilah
         </button>
       </div>
     </div>
@@ -1038,6 +1653,20 @@ function BodyPanel() {
             <Field label="Tinggi badan" unit="cm">
               <NumberInput value={heightCm} onChange={setHeightCm} placeholder="170" min={100} max={250} />
             </Field>
+            {parseFloat(age) > 0 && parseFloat(age) < 20 && (
+              <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: "#FFF3CD" }}>
+                <p className="text-xs" style={{ color: "#7A5A20" }}>
+                  ⚠ Untuk usia di bawah 20 tahun, kategori BMI standar dewasa
+                  (di bawah ini) <strong>kurang akurat</strong>. BMI anak/remaja
+                  seharusnya dinilai lewat kurva persentil sesuai usia & jenis
+                  kelamin (kurva pertumbuhan CDC/WHO), bukan angka tetap — misal
+                  BMI 23 bisa "obesitas" untuk anak 10 tahun tapi "normal"
+                  untuk remaja 15 tahun. Anggap angka di bawah ini sebagai
+                  perkiraan kasar saja; konsultasikan ke dokter anak untuk
+                  penilaian yang tepat.
+                </p>
+              </div>
+            )}
             <Footnote>
               Menggunakan ambang batas Asia-Pasifik (WHO), bukan ambang batas umum
               yang biasa dipakai untuk populasi Barat.
@@ -1183,6 +1812,8 @@ const TRAINING_GOALS = {
   cutting: {
     label: "Menurunkan berat badan / lemak",
     repScheme: "12–15 repetisi",
+    repMin: 12,
+    repMax: 15,
     restTime: "45–60 detik",
     cardioMin: 25,
     note: "Istirahat singkat, kardio lebih banyak untuk membantu defisit kalori.",
@@ -1190,6 +1821,8 @@ const TRAINING_GOALS = {
   muscle: {
     label: "Menambah massa otot (hipertrofi)",
     repScheme: "8–12 repetisi",
+    repMin: 8,
+    repMax: 12,
     restTime: "90 detik – 2 menit",
     cardioMin: 15,
     note: "Fokus volume & tension otot, kardio ringan sekadar menjaga kondisi jantung.",
@@ -1197,6 +1830,8 @@ const TRAINING_GOALS = {
   bulking: {
     label: "Menaikkan berat badan (kekuatan & massa)",
     repScheme: "6–8 repetisi, beban berat",
+    repMin: 6,
+    repMax: 8,
     restTime: "2–3 menit",
     cardioMin: 10,
     note: "Fokus overload beban, kardio diminimalkan supaya kalori tersisa untuk pemulihan otot.",
@@ -1204,6 +1839,8 @@ const TRAINING_GOALS = {
   maintenance: {
     label: "Menjaga kebugaran umum",
     repScheme: "10–12 repetisi",
+    repMin: 10,
+    repMax: 12,
     restTime: "60–90 detik",
     cardioMin: 15,
     note: "Kombinasi seimbang antara kekuatan dan daya tahan kardiovaskular.",
@@ -1213,28 +1850,165 @@ const TRAINING_GOALS = {
 const SETS_BY_LEVEL = { pemula: 3, menengah: 4, lanjutan: 5 };
 const CARDIO_SESSION_KEYS = ["legs", "lower", "kaki"];
 
-function combinedScheme(level, goalKey, isDeload) {
+function isYouth(profile) {
+  const age = parseFloat(profile && profile.age);
+  return !isNaN(age) && age > 0 && age < 18;
+}
+
+function isSenior(profile) {
+  const age = parseFloat(profile && profile.age);
+  return !isNaN(age) && age >= 60; // ambang "lansia" versi Kemenkes RI
+}
+
+function combinedScheme(level, goalKey, isDeload, capVolume) {
   const goal = TRAINING_GOALS[goalKey] || TRAINING_GOALS.maintenance;
-  const sets = SETS_BY_LEVEL[level] || 3;
+  let sets = SETS_BY_LEVEL[level] || 3;
+  if (capVolume) sets = Math.min(sets, 3); // usia <18 atau lansia: batasi maksimal 3 set
   const effectiveSets = isDeload ? Math.max(sets - 1, 2) : sets;
   return {
     scheme: `${effectiveSets} set x ${goal.repScheme}`,
     rest: goal.restTime,
     cardioMin: goal.cardioMin,
     note: goal.note,
+    repMin: goal.repMin,
+    repMax: goal.repMax,
   };
 }
 
-function exercisesForSession(equipKeys, sessionKey, goalKey) {
+// ---------- SARAN PROGRESSIVE OVERLOAD ----------
+// Metode disesuaikan level pengalaman, mengikuti riset:
+// - Pemula: linear progression (naikkan beban tiap sesi)
+// - Menengah: double progression (naikkan rep dulu sampai batas atas, baru naikkan beban)
+// - Lanjutan: autoregulasi berbasis RPE
+// - Usia <18: selalu "teknik dulu" (double progression) dengan kenaikan lebih kecil,
+//   mengikuti pedoman NSCA/ACSM/AAP soal latihan beban remaja.
+
+function findLastExerciseLog(program, exerciseName) {
+  for (let i = program.completedSessions.length - 1; i >= 0; i--) {
+    const s = program.completedSessions[i];
+    if (Array.isArray(s.exerciseLogs)) {
+      const found = s.exerciseLogs.find((e) => e.name === exerciseName && e.weight != null);
+      if (found) return { ...found, rpe: s.rpe };
+    }
+  }
+  return null;
+}
+
+function suggestNextLoad({ lastLog, level, goalKey, sleepQuality, youth, senior }) {
+  if (!lastLog || lastLog.weight == null) return null;
+  const goal = TRAINING_GOALS[goalKey] || TRAINING_GOALS.maintenance;
+  const { repMin, repMax } = goal;
+  const conservative = youth || senior;
+  const INCREMENT = conservative ? 1 : 2.5;
+
+  if (sleepQuality === "kurang") {
+    return {
+      weight: lastLog.weight,
+      reps: lastLog.reps || repMin,
+      note: "Tidur kurang semalam — pertahankan beban ini dulu, jangan paksakan naik.",
+    };
+  }
+
+  if (conservative) {
+    const reasonUp = youth ? "tetap didampingi pelatih/guru" : "pantau toleransi tubuh pelan-pelan";
+    const reasonReps = youth ? "pedoman usia <18 tahun" : "pedoman usia lansia — pemulihan lebih lambat";
+    if (lastLog.reps != null && repMax != null && lastLog.reps >= repMax) {
+      return {
+        weight: +(lastLog.weight + INCREMENT).toFixed(1),
+        reps: repMin,
+        note: `Teknik sudah dikuasai di rep ${repMax} — naikkan beban sedikit (${INCREMENT} kg), ${reasonUp}.`,
+      };
+    }
+    const nextRepsConservative = (lastLog.reps || repMin || 1) + 1;
+    return {
+      weight: lastLog.weight,
+      reps: repMax != null ? Math.min(nextRepsConservative, repMax) : nextRepsConservative,
+      note: `Tambah repetisi dulu, beban naik belakangan (${reasonReps}).`,
+    };
+  }
+
+  if (level === "pemula") {
+    return {
+      weight: +(lastLog.weight + INCREMENT).toFixed(1),
+      reps: repMin,
+      note: `Progresi linear: naikkan ${INCREMENT} kg dari sesi lalu (khas pemula).`,
+    };
+  }
+
+  if (level === "menengah") {
+    if (lastLog.reps != null && repMax != null && lastLog.reps >= repMax) {
+      return {
+        weight: +(lastLog.weight + INCREMENT).toFixed(1),
+        reps: repMin,
+        note: `Sudah capai ${repMax} rep di beban lama — saatnya naik beban (double progression).`,
+      };
+    }
+    const nextReps = (lastLog.reps || repMin || 1) + 1;
+    return {
+      weight: lastLog.weight,
+      reps: repMax != null ? Math.min(nextReps, repMax) : nextReps,
+      note: "Coba tambah 1 repetisi dulu di beban yang sama (double progression).",
+    };
+  }
+
+  // lanjutan: autoregulasi berbasis RPE sesi sebelumnya
+  if (lastLog.rpe != null) {
+    if (lastLog.rpe <= 7) {
+      return {
+        weight: +(lastLog.weight + INCREMENT).toFixed(1),
+        reps: lastLog.reps,
+        note: `RPE sesi lalu ${lastLog.rpe} (cukup ringan) — beban bisa dinaikkan.`,
+      };
+    }
+    if (lastLog.rpe >= 9) {
+      return {
+        weight: lastLog.weight,
+        reps: lastLog.reps,
+        note: `RPE sesi lalu ${lastLog.rpe} (berat) — pertahankan dulu beban ini.`,
+      };
+    }
+  }
+  return {
+    weight: lastLog.weight,
+    reps: lastLog.reps,
+    note: "Pertahankan beban ini, evaluasi dari RPE Anda hari ini.",
+  };
+}
+
+const HIIT_DURATION = 20;
+
+function exercisesForSession(equipKeys, sessionKey, goalKey, cardioType, senior) {
   let list = equipKeys.flatMap((eq) => EXERCISES[eq][sessionKey] || []);
   if (CARDIO_SESSION_KEYS.includes(sessionKey)) {
     const goal = TRAINING_GOALS[goalKey] || TRAINING_GOALS.maintenance;
-    const cardioLabel = equipKeys.includes("gym")
-      ? `Kardio: jogging treadmill ${goal.cardioMin} menit`
-      : `Kardio: jogging luar ruang ${goal.cardioMin} menit`;
+    const isGym = equipKeys.includes("gym");
+    let cardioLabel;
+    if (goalKey === "cutting" && cardioType === "HIIT" && !senior) {
+      cardioLabel = isGym
+        ? `Kardio (HIIT): interval treadmill ${HIIT_DURATION} menit (30 detik cepat / 90 detik jalan, ulangi)`
+        : `Kardio (HIIT): sprint interval ${HIIT_DURATION} menit (30 detik cepat / 90 detik jalan, ulangi)`;
+    } else {
+      const suffix = goalKey === "cutting" ? " (LISS)" : "";
+      cardioLabel = isGym
+        ? `Kardio${suffix}: jogging treadmill ${goal.cardioMin} menit`
+        : `Kardio${suffix}: jogging luar ruang ${goal.cardioMin} menit`;
+    }
     list = [...list, cardioLabel];
   }
+  list = [
+    "Pemanasan dinamis: 5–8 menit (arm circle, leg swing, bodyweight squat ringan)",
+    ...list,
+    "Peregangan: 5–10 menit peregangan otot utama setelah latihan",
+  ];
+  if (senior) {
+    list = [...list, "Latihan keseimbangan: 5 menit (berdiri satu kaki bergantian, jalan tumit-ke-ujung kaki)"];
+  }
   return list;
+}
+
+const NON_TRACKABLE_PREFIXES = ["Kardio:", "Kardio (", "Peregangan:", "Pemanasan dinamis:", "Latihan keseimbangan:"];
+function isTrackableExercise(name) {
+  return !NON_TRACKABLE_PREFIXES.some((p) => name.startsWith(p));
 }
 
 const RPE_SCALE = [
@@ -1344,6 +2118,7 @@ function buildSchedule(program) {
   const totalDays = durationWeeks * 7;
 
   const days = [];
+  const cardioCountByWeek = {};
   for (let i = 0; i < totalDays; i++) {
     const d = new Date(start);
     d.setDate(d.getDate() + i);
@@ -1359,7 +2134,14 @@ function buildSchedule(program) {
     const sessionLabel = sessionCycle[trainIndex % sessionCycle.length];
     const sessionKey = sessionLabel.toLowerCase().replace(" ", "").replace("-", "");
     const key = sessionKey === "fullbody" ? "fullbody" : sessionKey;
-    days.push({ date: toDateStr(d), weekNum, deload, rest: false, label: sessionLabel, key });
+    let cardioType = null;
+    if (CARDIO_SESSION_KEYS.includes(key)) {
+      cardioCountByWeek[weekNum] = (cardioCountByWeek[weekNum] || 0) + 1;
+      // Maksimal 1-2x HIIT/minggu (pola 80/20); minggu deload selalu LISS
+      // supaya tidak menambah beban saat tubuh sedang pemulihan.
+      cardioType = !deload && cardioCountByWeek[weekNum] >= 2 ? "HIIT" : "LISS";
+    }
+    days.push({ date: toDateStr(d), weekNum, deload, rest: false, label: sessionLabel, key, cardioType });
   }
   return { scheme, days };
 }
@@ -1436,12 +2218,22 @@ function loadImageEl(src) {
   });
 }
 
-async function downloadPhotoShareCard({ photoDataUrl, headline, stats, listBlock, footer, filename }) {
-  const width = 800;
-  const statsRows = Math.ceil(stats.length / 2);
-  const listLines = listBlock ? listBlock.length : 0;
-  const contentHeight = 90 + statsRows * 96 + 20 + (listLines > 0 ? 30 + listLines * 32 : 0);
-  const height = Math.max(contentHeight + 260, 900);
+function truncateToWidth(ctx, text, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let t = text;
+  while (t.length > 1 && ctx.measureText(t + "…").width > maxWidth) {
+    t = t.slice(0, -1);
+  }
+  return t + "…";
+}
+
+async function downloadPhotoShareCard({ photoDataUrl, headline, stats, listBlock, footer, filename, progressPct, prBadge, weightTrend }) {
+  // Ukuran Instagram Story (9:16)
+  const width = 1080;
+  const height = 1920;
+  const PAD = 72;
+  const contentW = width - PAD * 2;
+
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -1451,68 +2243,145 @@ async function downloadPhotoShareCard({ photoDataUrl, headline, stats, listBlock
   if (photoDataUrl) {
     try {
       const imgEl = await loadImageEl(photoDataUrl);
-      const scale = Math.max(width / imgEl.width, canvas.height / imgEl.height);
+      const scale = Math.max(width / imgEl.width, height / imgEl.height);
       const sw = width / scale;
-      const sh = canvas.height / scale;
+      const sh = height / scale;
       const sx = (imgEl.width - sw) / 2;
       const sy = (imgEl.height - sh) / 2;
-      ctx.drawImage(imgEl, sx, sy, sw, sh, 0, 0, width, canvas.height);
+      ctx.drawImage(imgEl, sx, sy, sw, sh, 0, 0, width, height);
     } catch (e) {
       ctx.fillStyle = INK;
-      ctx.fillRect(0, 0, width, canvas.height);
+      ctx.fillRect(0, 0, width, height);
     }
   } else {
     ctx.fillStyle = INK;
-    ctx.fillRect(0, 0, width, canvas.height);
+    ctx.fillRect(0, 0, width, height);
   }
 
-  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  grad.addColorStop(0, "rgba(16,35,59,0.65)");
-  grad.addColorStop(0.3, "rgba(16,35,59,0.15)");
-  grad.addColorStop(0.55, "rgba(16,35,59,0.55)");
-  grad.addColorStop(1, "rgba(16,35,59,0.95)");
+  const grad = ctx.createLinearGradient(0, 0, 0, height);
+  grad.addColorStop(0, "rgba(16,35,59,0.72)");
+  grad.addColorStop(0.35, "rgba(16,35,59,0.30)");
+  grad.addColorStop(0.6, "rgba(16,35,59,0.60)");
+  grad.addColorStop(1, "rgba(16,35,59,0.94)");
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, width, canvas.height);
+  ctx.fillRect(0, 0, width, height);
 
-  let y = 90;
+  let y = 320;
+
+  if (prBadge) {
+    ctx.font = "900 26px sans-serif";
+    const textW = ctx.measureText(prBadge).width;
+    ctx.fillStyle = "rgba(255,196,0,0.22)";
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(PAD, y - 36, textW + 52, 50, 25);
+    else ctx.rect(PAD, y - 36, textW + 52, 50);
+    ctx.fill();
+    ctx.fillStyle = "#FFC400";
+    ctx.fillText(prBadge, PAD + 26, y - 2);
+    y += 66;
+  }
+
+  // Statistik: 2 kolom
+  const colW = contentW / 2;
   stats.forEach((s, i) => {
     const col = i % 2;
     const row = Math.floor(i / 2);
-    const x = 48 + col * (width / 2 - 48);
-    const yy = y + row * 96;
-    ctx.font = "600 19px sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-    ctx.fillText(s.label, x, yy);
-    ctx.font = "900 40px sans-serif";
+    const x = PAD + col * colW;
+    const yy = y + row * 128;
+    ctx.font = "600 20px sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.fillText(truncateToWidth(ctx, s.label.toUpperCase(), colW - 24), x, yy);
+    ctx.font = "900 42px sans-serif";
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillText(String(s.value), x, yy + 38);
+    ctx.fillText(truncateToWidth(ctx, String(s.value), colW - 24), x, yy + 44);
   });
 
-  let cursorY = y + Math.ceil(stats.length / 2) * 96 + 20;
+  let cursorY = y + Math.ceil(stats.length / 2) * 128 + 40;
 
   if (listBlock && listBlock.length > 0) {
-    ctx.font = "600 18px sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.75)";
-    ctx.fillText("GERAKAN", 48, cursorY);
-    cursorY += 30;
-    ctx.font = "24px sans-serif";
+    ctx.font = "600 20px sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.fillText("GERAKAN", PAD, cursorY);
+    cursorY += 36;
+    ctx.font = "26px sans-serif";
     ctx.fillStyle = "#FFFFFF";
     listBlock.forEach((line) => {
-      ctx.fillText(`• ${line}`, 48, cursorY);
-      cursorY += 32;
+      ctx.fillText(truncateToWidth(ctx, `• ${line}`, contentW), PAD, cursorY);
+      cursorY += 38;
     });
   }
 
+  const hasChart = weightTrend && weightTrend.length >= 2;
+  if (hasChart) {
+    cursorY += 30;
+    ctx.font = "600 20px sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.fillText("TREN BERAT BADAN", PAD, cursorY);
+    cursorY += 30;
+    const chartTop = cursorY;
+    const chartBottom = cursorY + 92;
+    const vals = weightTrend;
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    const range = max - min || 1;
+    ctx.beginPath();
+    vals.forEach((v, i) => {
+      const px = PAD + (i / (vals.length - 1)) * contentW;
+      const py = chartBottom - ((v - min) / range) * (chartBottom - chartTop);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+    ctx.strokeStyle = TRACK;
+    ctx.lineWidth = 4;
+    ctx.lineJoin = "round";
+    ctx.stroke();
+    vals.forEach((v, i) => {
+      const px = PAD + (i / (vals.length - 1)) * contentW;
+      const py = chartBottom - ((v - min) / range) * (chartBottom - chartTop);
+      ctx.beginPath();
+      ctx.arc(px, py, 5, 0, Math.PI * 2);
+      ctx.fillStyle = TRACK;
+      ctx.fill();
+    });
+    ctx.font = "20px sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.fillText(`${vals[0]} kg`, PAD, chartBottom + 32);
+    ctx.textAlign = "right";
+    ctx.fillText(`${vals[vals.length - 1]} kg`, PAD + contentW, chartBottom + 32);
+    ctx.textAlign = "left";
+    cursorY = chartBottom + 56;
+  }
+
+  if (progressPct != null) {
+    const barY = cursorY + 20;
+    ctx.font = "20px sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.fillText(`PROGRES PROGRAM · ${progressPct}%`, PAD, barY);
+    const trackY = barY + 18;
+    ctx.fillStyle = "rgba(255,255,255,0.22)";
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(PAD, trackY, contentW, 12, 6);
+    else ctx.rect(PAD, trackY, contentW, 12);
+    ctx.fill();
+    ctx.fillStyle = TRACK;
+    ctx.beginPath();
+    const fillW = Math.max((contentW * progressPct) / 100, 12);
+    if (ctx.roundRect) ctx.roundRect(PAD, trackY, fillW, 12, 6);
+    else ctx.rect(PAD, trackY, fillW, 12);
+    ctx.fill();
+  }
+
+  // Blok bawah: garis aksen, headline, footer
   ctx.fillStyle = TRACK;
-  ctx.fillRect(48, canvas.height - 210, 56, 5);
+  ctx.fillRect(PAD, height - 300, 76, 7);
 
-  ctx.font = "900 36px sans-serif";
+  ctx.font = "900 52px sans-serif";
   ctx.fillStyle = "#FFFFFF";
-  wrapCanvasText(ctx, headline, 48, canvas.height - 165, width - 96, 42);
+  wrapCanvasText(ctx, headline, PAD, height - 230, contentW, 60);
 
-  ctx.font = "19px sans-serif";
+  ctx.font = "24px sans-serif";
   ctx.fillStyle = "rgba(255,255,255,0.75)";
-  ctx.fillText(footer, 48, canvas.height - 50);
+  ctx.fillText(truncateToWidth(ctx, footer, contentW), PAD, height - 90);
 
   canvas.toBlob((blob) => {
     if (!blob) return;
@@ -1606,6 +2475,126 @@ function WeeklyBarChart({ weeks }) {
   );
 }
 
+// ---------- BEBAN LATIHAN MINGGUAN (session-RPE x durasi) ----------
+
+// ---------- RENTETAN LATIHAN (STREAK) ----------
+
+function calculateStreak(program, days) {
+  const todayStr = toDateStr(new Date());
+  const trainingDaysUpToToday = days
+    .filter((d) => !d.rest && d.date <= todayStr)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  let streak = 0;
+  for (let i = trainingDaysUpToToday.length - 1; i >= 0; i--) {
+    const d = trainingDaysUpToToday[i];
+    const done = program.completedSessions.some((s) => s.date === d.date);
+    if (done) {
+      streak++;
+    } else if (d.date === todayStr) {
+      continue; // hari ini belum ditandai — belum memutus streak, tunggu saja
+    } else {
+      break; // sesi terjadwal di masa lalu terlewat — streak putus
+    }
+  }
+
+  const recent = trainingDaysUpToToday.slice(-5).map((d) => ({
+    date: d.date,
+    weekdayIdx: (new Date(d.date + "T00:00:00").getDay() + 6) % 7,
+    done: program.completedSessions.some((s) => s.date === d.date),
+    isToday: d.date === todayStr,
+  }));
+
+  return { streak, recent };
+}
+
+function StreakStrip({ recent }) {
+  return (
+    <div className="flex gap-2 mt-3">
+      {recent.map((d) => (
+        <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: d.done ? "#E3F5E9" : d.isToday ? "#FFEEDD" : "var(--c-page)" }}
+          >
+            {d.done ? (
+              <CheckCircle2 size={14} color="#1F9254" />
+            ) : d.isToday ? (
+              <span style={{ fontSize: 13 }}>🔥</span>
+            ) : (
+              <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: MUTED, display: "block" }} />
+            )}
+          </div>
+          <span className="text-[9px]" style={{ color: MUTED }}>{DAY_NAMES[d.weekdayIdx].slice(0, 3)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function weeklyTrainingLoad(program, days) {
+  const loadByWeek = {};
+  program.completedSessions.forEach((s) => {
+    const day = days.find((d) => d.date === s.date);
+    if (!day) return;
+    const load = (s.rpe || 0) * (s.durationMin || 0);
+    loadByWeek[day.weekNum] = (loadByWeek[day.weekNum] || 0) + load;
+  });
+  const maxWeek = Math.max(0, ...Object.keys(loadByWeek).map(Number));
+  const weeks = [];
+  for (let w = 1; w <= maxWeek; w++) weeks.push({ weekNum: w, load: loadByWeek[w] || 0 });
+  return weeks;
+}
+
+function TrainingLoadCard({ program, days }) {
+  const weeks = useMemo(() => weeklyTrainingLoad(program, days), [program, days]);
+  const withData = weeks.filter((w) => w.load > 0);
+  if (withData.length < 1) return null;
+
+  const last = withData[withData.length - 1];
+  const prev = withData.length >= 2 ? withData[withData.length - 2] : null;
+  const pctChange = prev && prev.load > 0 ? Math.round(((last.load - prev.load) / prev.load) * 100) : null;
+  const spike = pctChange != null && pctChange > 20;
+  const maxLoad = Math.max(...weeks.map((w) => w.load), 1);
+  const recentWeeks = weeks.slice(-6);
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="font-black text-lg" style={{ color: GRAPHITE }}>Beban Latihan Mingguan</span>
+        <InfoTooltip text={GLOSSARY_TERMS[16].def} />
+      </div>
+      <div className="flex items-end gap-2 mt-4" style={{ height: 90 }}>
+        {recentWeeks.map((w) => (
+          <div key={w.weekNum} className="flex-1 flex flex-col items-center gap-1">
+            <div
+              className="w-full rounded-sm"
+              style={{
+                height: `${Math.max((w.load / maxLoad) * 70, w.load > 0 ? 6 : 2)}px`,
+                backgroundColor: w.weekNum === last.weekNum && spike ? "#D97706" : TRACK,
+                opacity: w.load === 0 ? 0.15 : 1,
+              }}
+            />
+            <span className="text-[10px]" style={{ color: MUTED }}>M{w.weekNum}</span>
+          </div>
+        ))}
+      </div>
+      {pctChange != null && (
+        <p className="text-xs mt-3" style={{ color: spike ? "#B7791F" : MUTED }}>
+          {spike
+            ? `⚠ Beban minggu ini naik ${pctChange}% dari minggu lalu — cukup tajam. Perhatikan tanda kelelahan berlebih (tidur, nyeri, RPE yang terasa lebih berat dari biasanya).`
+            : pctChange >= 0
+            ? `Beban minggu ini naik ${pctChange}% dari minggu lalu — masih dalam rentang wajar.`
+            : `Beban minggu ini turun ${Math.abs(pctChange)}% dari minggu lalu.`}
+        </p>
+      )}
+      <p className="text-xs mt-2" style={{ color: MUTED }}>
+        Indikator kasar untuk kesadaran diri (dihitung dari RPE × durasi tiap sesi) — bukti ilmiahnya masih beragam, jadi anggap ini pengingat, bukan alat prediksi cedera yang pasti akurat.
+      </p>
+    </Card>
+  );
+}
+
 // ---------- PROGRAM LATIHAN ----------
 
 const DURATION_RECOMMENDATIONS = {
@@ -1694,35 +2683,27 @@ function DashboardPanel({ onNavigate }) {
   const [profile] = useProfile();
   const { program } = useActiveProgram();
 
+  const { days } = useMemo(() => (program ? buildSchedule(program) : { days: [] }), [program]);
+  const todayStr = toDateStr(new Date());
+  const todayEntry = program ? days.find((d) => d.date === todayStr) : null;
+  const trainingDays = days.filter((d) => !d.rest);
+  const doneCount = program ? program.completedSessions.length : 0;
+  const progressPct = trainingDays.length > 0 ? Math.round((doneCount / trainingDays.length) * 100) : 0;
+
+  const thisWeekDays = todayEntry ? days.filter((d) => d.weekNum === todayEntry.weekNum && !d.rest) : [];
+  const thisWeekDone = program ? thisWeekDays.filter((d) => program.completedSessions.some((s) => s.date === d.date)).length : 0;
+
+  const { streak, recent } = program ? calculateStreak(program, days) : { streak: 0, recent: [] };
+  const loadWeeks = program ? weeklyTrainingLoad(program, days) : [];
+  const latestLoad = loadWeeks.length ? Math.round(loadWeeks[loadWeeks.length - 1].load) : 0;
+
+  const weights = program ? program.completedSessions.filter((s) => s.weight != null).map((s) => ({ date: s.date, weight: s.weight })) : [];
+
   const features = [
-    {
-      icon: Gauge,
-      color: ICON_COLORS.onerm,
-      title: "8 Kalkulator Ilmiah",
-      body: "VO2 Maks, BMI, 1RM, dan lainnya — berbasis riset sains kepelatihan terkini.",
-      tab: "vo2",
-    },
-    {
-      icon: Dumbbell,
-      color: ICON_COLORS.latihan,
-      title: "Program Otomatis",
-      body: "Jadwal harian personal sesuai tujuan, level, dan waktu latihan Anda.",
-      tab: "latihan",
-    },
-    {
-      icon: History,
-      color: ICON_COLORS.riwayat,
-      title: "Progres Terekam",
-      body: "Tren berat badan, kekuatan, dan kepatuhan latihan tersimpan otomatis.",
-      tab: "riwayat",
-    },
-    {
-      icon: Utensils,
-      color: ICON_COLORS.nutrisi,
-      title: "Target Nutrisi",
-      body: "Kebutuhan kalori & makro harian, menyesuaikan tujuan latihan Anda.",
-      tab: "nutrisi",
-    },
+    { icon: Gauge, color: ICON_COLORS.onerm, title: "8 Kalkulator Ilmiah", body: "VO2 Maks, BMI, 1RM, dan lainnya — berbasis riset sains kepelatihan terkini.", tab: "vo2" },
+    { icon: Dumbbell, color: ICON_COLORS.latihan, title: "Program Otomatis", body: "Jadwal harian personal sesuai tujuan, level, dan waktu latihan Anda.", tab: "latihan" },
+    { icon: History, color: ICON_COLORS.riwayat, title: "Progres Terekam", body: "Tren berat badan, kekuatan, dan kepatuhan latihan tersimpan otomatis.", tab: "riwayat" },
+    { icon: Utensils, color: ICON_COLORS.nutrisi, title: "Target Nutrisi", body: "Kebutuhan kalori & makro harian, menyesuaikan tujuan latihan Anda.", tab: "nutrisi" },
   ];
 
   return (
@@ -1734,20 +2715,90 @@ function DashboardPanel({ onNavigate }) {
         </h2>
         <p className="text-sm mt-2 max-w-md" style={{ color: "#9AA6B2" }}>
           {program
-            ? "Program latihan Anda sedang berjalan — lanjutkan untuk melihat sesi hari ini."
+            ? "Program latihan Anda sedang berjalan — cek progres di bawah, atau lanjutkan sesi hari ini."
             : "Buat program latihan personal dalam hitungan detik — lengkap dengan jadwal otomatis, pelacakan progres, dan rekomendasi berbasis sains."}
         </p>
-        <button
-          onClick={() => onNavigate && onNavigate("latihan")}
-          className="mt-4 px-5 py-2.5 text-sm font-semibold rounded-full"
-          style={{ backgroundColor: TRACK, color: "#FFFFFF" }}
-        >
-          {program ? "Buka Program Latihan →" : "Mulai Buat Program →"}
-        </button>
+        {!program && (
+          <button
+            onClick={() => onNavigate && onNavigate("latihan")}
+            className="mt-4 px-5 py-2.5 text-sm font-semibold rounded-full"
+            style={{ backgroundColor: TRACK, color: "#FFFFFF" }}
+          >
+            Mulai Buat Program →
+          </button>
+        )}
       </Card>
 
+      {program && (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <Card className="p-4">
+              <span className="text-xs" style={{ color: MUTED }}>Progres Program</span>
+              <div className="text-2xl font-black mt-0.5" style={{ color: GRAPHITE }}>{progressPct}%</div>
+            </Card>
+            <Card className="p-4">
+              <span className="text-xs" style={{ color: MUTED }}>Sesi Minggu Ini</span>
+              <div className="text-2xl font-black mt-0.5" style={{ color: GRAPHITE }}>{thisWeekDone}/{thisWeekDays.length}</div>
+            </Card>
+            <Card className="p-4">
+              <span className="text-xs" style={{ color: MUTED }}>Beban Minggu Ini</span>
+              <div className="text-2xl font-black mt-0.5" style={{ color: GRAPHITE }}>{latestLoad || "–"}</div>
+            </Card>
+            <Card className="p-4">
+              <div className="flex items-center gap-1">
+                <span style={{ fontSize: 14 }}>🔥</span>
+                <span className="text-xs" style={{ color: MUTED }}>Rentetan</span>
+              </div>
+              <div className="text-2xl font-black mt-0.5" style={{ color: GRAPHITE }}>{streak}</div>
+            </Card>
+          </div>
+
+          <div className="grid md:grid-cols-5 gap-4 mb-4">
+            <Card className="md:col-span-3 p-6">
+              {todayEntry && !todayEntry.rest ? (
+                <>
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: TRACK }}>Hari ini</span>
+                  <div className="font-black text-xl mt-1 mb-3" style={{ color: GRAPHITE }}>
+                    {todayEntry.label}
+                    {program.completedSessions.some((s) => s.date === todayStr) ? " ✓ Selesai" : ""}
+                  </div>
+                  <button
+                    onClick={() => onNavigate && onNavigate("latihan")}
+                    className="px-5 py-2.5 text-sm font-semibold rounded-full"
+                    style={{ backgroundColor: TRACK, color: "#FFFFFF" }}
+                  >
+                    {program.completedSessions.some((s) => s.date === todayStr) ? "Lihat Program Latihan →" : "▶ Lanjutkan Latihan"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>Hari ini</span>
+                  <div className="font-black text-xl mt-1" style={{ color: GRAPHITE }}>Istirahat 💤</div>
+                </>
+              )}
+              <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${LINE}` }}>
+                <span className="text-xs" style={{ color: MUTED }}>5 sesi terakhir</span>
+                <StreakStrip recent={recent} />
+              </div>
+            </Card>
+            <Card className="md:col-span-2 p-6">
+              <span className="text-sm font-bold" style={{ color: GRAPHITE }}>Tren Berat Badan</span>
+              {weights.length >= 2 ? (
+                <div className="mt-2">
+                  <WeightTrendChart points={weights} target={program.targetWeight} />
+                </div>
+              ) : (
+                <p className="text-xs mt-2" style={{ color: MUTED }}>
+                  Catat berat badan saat menandai sesi selesai untuk melihat tren di sini.
+                </p>
+              )}
+            </Card>
+          </div>
+        </>
+      )}
+
       <span className="text-xs font-semibold uppercase tracking-wide px-1" style={{ color: MUTED }}>
-        Fitur utama
+        {program ? "Jelajahi fitur lain" : "Fitur utama"}
       </span>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
         {features.map((f) => (
@@ -1786,7 +2837,7 @@ function ProgramSetupForm({ onStart }) {
   const freqNum = Math.min(Math.max(parseInt(freq, 10) || 3, 2), 6);
   const effectiveFreq = dayMode === "manual" ? customDays.length : freqNum;
   const scheme = schemeMode === "auto" ? autoScheme(effectiveFreq) : manualScheme;
-  const combined = combinedScheme(level, goal, false);
+  const combined = combinedScheme(level, goal, false, isYouth(profile) || isSenior(profile));
   const numBlocks = Math.ceil(parseInt(durationWeeks, 10) / 4);
 
   const bmiRangeForTarget = profile.height ? idealWeightRangeBmi(profile.height) : null;
@@ -1802,6 +2853,18 @@ function ProgramSetupForm({ onStart }) {
   return (
     <div className="p-4 md:p-6 flex flex-col md:grid md:grid-cols-5 gap-4">
       <div className="order-2 md:order-1 md:col-span-2 p-6 md:p-8 rounded-xl" style={{ backgroundColor: "var(--c-surface)", border: "1px solid var(--c-line)", boxShadow: "0 1px 3px rgba(16,24,40,0.04)" }}>
+        {isYouth(profile) && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-full mb-4 w-fit" style={{ backgroundColor: "#FFF3CD" }}>
+            <span style={{ fontSize: 14 }}>🎓</span>
+            <span className="text-xs font-semibold" style={{ color: "#7A5A20" }}>Mode Latihan Remaja Aktif</span>
+          </div>
+        )}
+        {isSenior(profile) && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-full mb-4 w-fit" style={{ backgroundColor: "#E0F2F1" }}>
+            <span style={{ fontSize: 14 }}>🧓</span>
+            <span className="text-xs font-semibold" style={{ color: "#0F6E56" }}>Mode Latihan Lansia Aktif</span>
+          </div>
+        )}
         <Field label="Tujuan latihan">
           <Select
             value={goal}
@@ -1821,6 +2884,16 @@ function ProgramSetupForm({ onStart }) {
               />
             </Field>
           </>
+        )}
+
+        {goal === "cutting" && isYouth(profile) && (
+          <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: "#FFF3CD" }}>
+            <p className="text-xs" style={{ color: "#7A5A20" }}>
+              ⚠ Usia di bawah 18 tahun masih dalam masa pertumbuhan yang butuh
+              asupan kalori cukup. Diskusikan dulu dengan orang tua, dokter,
+              atau ahli gizi sebelum menjalani program penurunan berat badan.
+            </p>
+          </div>
         )}
 
         <Field label="Penentuan hari latihan">
@@ -1941,7 +3014,13 @@ function ProgramSetupForm({ onStart }) {
         )}
         <Footnote>
           {TRAINING_GOALS[goal].note} Kardio otomatis ditambahkan di hari
-          kaki/lower. Program dibagi jadi {numBlocks} blok 4 minggu — minggu
+          kaki/lower{goal === "cutting" ? " — mayoritas santai (LISS), 1x/minggu diselingi interval (HIIT) mengikuti pola 80/20 (minggu deload tetap LISS supaya pemulihan optimal)" : ""}.
+          Pemanasan dinamis (gerakan aktif, bukan diam) otomatis ditambahkan
+          di awal tiap sesi — riset menunjukkan peregangan statis sebelum
+          angkat beban justru bisa menurunkan performa, sementara pemanasan
+          dinamis terbukti aman dan menurunkan risiko cedera. Peregangan
+          statis singkat otomatis ditambahkan di akhir tiap sesi (≥2x/minggu
+          sesuai pedoman ACSM). Program dibagi jadi {numBlocks} blok 4 minggu — minggu
           terakhir tiap blok otomatis jadi <em>deload</em> (volume
           diturunkan) mengikuti prinsip periodisasi standar (Bompa; mesocycle
           3–6 minggu). Soal skema "Split otot per hari" vs "PPL 2x": riset
@@ -1950,6 +3029,27 @@ function ProgramSetupForm({ onStart }) {
           pada volume yang sama — tapi split per hari tetap valid & banyak
           disukai karena motivasi & fokusnya. Konsultasikan dokter/fisioterapis
           bila ada cedera/kondisi medis tertentu.
+          {isYouth(profile) && (
+            <>
+              {" "}Untuk usia di bawah 18 tahun, program otomatis menyesuaikan
+              mengikuti pedoman NSCA/ACSM/AAP: set dibatasi maksimal 3, kenaikan
+              beban lebih kecil & pelan, fokus penguasaan teknik dulu sebelum
+              beban ditambah. Latihan usia ini sebaiknya tetap didampingi
+              pelatih/guru yang paham teknik dasar.
+            </>
+          )}
+          {isSenior(profile) && (
+            <>
+              {" "}Untuk usia lansia (≥60 tahun), riset ACSM justru menunjukkan
+              intensitas cukup tinggi (60-80% 1RM) tetap bermanfaat & aman —
+              bukan berarti harus selalu ringan. Penyesuaian di sini lebih ke
+              kecepatan progresi (lebih pelan, pantau toleransi) dan keamanan
+              tambahan: kardio dikunci ke tempo santai (LISS, tanpa interval
+              HIIT), plus latihan keseimbangan otomatis ditambahkan tiap sesi
+              — riset menunjukkan ini efektif menurunkan risiko jatuh.
+              Konsultasikan dokter dulu bila ada kondisi jantung/sendi tertentu.
+            </>
+          )}
         </Footnote>
       </div>
 
@@ -2011,7 +3111,102 @@ function ProgramSetupForm({ onStart }) {
   );
 }
 
-function TodaySessionCard({ program, todayEntry, todayExercises, combined, onComplete, existingSession, onCancelEdit }) {
+const PAIN_MESSAGES = {
+  ringan: "Latihan hati-hati hari ini — kurangi beban atau lewati gerakan yang memperparah nyeri. Kalau nyeri bertambah saat latihan, hentikan gerakan itu.",
+  sedang: "Nyeri yang mengganggu gerakan sebaiknya tidak dipaksakan. Kalau berlanjut lebih dari beberapa hari, sebaiknya periksa ke dokter/fisioterapis.",
+  akut: "Cedera akut sebaiknya dievaluasi dulu oleh tenaga medis sebelum lanjut latihan. Aplikasi ini bukan pengganti pemeriksaan medis.",
+};
+const SLEEP_MESSAGES = {
+  cukup: "Tidur agak kurang optimal — perhatikan RPE Anda hari ini, jangan paksakan kalau terasa lebih berat dari biasanya.",
+  kurang: "Kurang tidur terbukti menurunkan performa & menaikkan risiko cedera. Pertimbangkan turunkan beban sedikit hari ini, atau ganti jadi sesi ringan.",
+};
+
+function OptionBtn({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className="px-3 py-2 text-xs font-semibold rounded-full text-left"
+      style={{ backgroundColor: active ? TRACK : "var(--c-page)", color: active ? "#FFFFFF" : GRAPHITE }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function PreSessionCheckIn({ onProceed, onSkip }) {
+  const [sleep, setSleep] = useState(null);
+  const [pain, setPain] = useState(null);
+  const suggestRest = pain === "sedang" || pain === "akut";
+  const canProceed = sleep != null && pain != null;
+
+  return (
+    <div>
+      <span className="text-sm uppercase tracking-wide" style={{ color: MUTED }}>
+        Cek kondisi sebelum mulai
+      </span>
+      <div className="mt-3">
+        <span className="text-xs font-semibold" style={{ color: GRAPHITE }}>
+          Kualitas tidur semalam?
+        </span>
+        <div className="flex flex-wrap gap-2 mt-2">
+          <OptionBtn active={sleep === "baik"} onClick={() => setSleep("baik")}>Baik</OptionBtn>
+          <OptionBtn active={sleep === "cukup"} onClick={() => setSleep("cukup")}>Cukup</OptionBtn>
+          <OptionBtn active={sleep === "kurang"} onClick={() => setSleep("kurang")}>Kurang</OptionBtn>
+        </div>
+        {sleep && SLEEP_MESSAGES[sleep] && (
+          <p className="text-xs mt-2" style={{ color: "#B7791F" }}>{SLEEP_MESSAGES[sleep]}</p>
+        )}
+      </div>
+
+      <div className="mt-4">
+        <span className="text-xs font-semibold" style={{ color: GRAPHITE }}>
+          Ada nyeri atau cedera hari ini?
+        </span>
+        <div className="flex flex-col gap-2 mt-2">
+          <OptionBtn active={pain === "tidak"} onClick={() => setPain("tidak")}>Tidak ada</OptionBtn>
+          <OptionBtn active={pain === "ringan"} onClick={() => setPain("ringan")}>Nyeri ringan, masih bisa gerak normal</OptionBtn>
+          <OptionBtn active={pain === "sedang"} onClick={() => setPain("sedang")}>Nyeri sedang–berat / mengganggu gerakan</OptionBtn>
+          <OptionBtn active={pain === "akut"} onClick={() => setPain("akut")}>Cedera baru terjadi (akut)</OptionBtn>
+        </div>
+        {pain && PAIN_MESSAGES[pain] && (
+          <p className="text-xs mt-2" style={{ color: pain === "akut" ? "#C0392B" : "#B7791F" }}>
+            {PAIN_MESSAGES[pain]}
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-3 mt-5">
+        {suggestRest && (
+          <button
+            onClick={onSkip}
+            className="px-5 py-2.5 text-sm font-semibold rounded-full"
+            style={{ backgroundColor: "#C0392B", color: "#FFFFFF" }}
+          >
+            Lewati, istirahat hari ini
+          </button>
+        )}
+        <button
+          disabled={!canProceed}
+          onClick={() =>
+            onProceed({
+              sleep,
+              pain,
+              sleepNote: SLEEP_MESSAGES[sleep] || null,
+              painNote: PAIN_MESSAGES[pain] || null,
+            })
+          }
+          className="px-5 py-2.5 text-sm font-semibold rounded-full disabled:opacity-40"
+          style={{ backgroundColor: suggestRest ? "var(--c-page)" : TRACK, color: suggestRest ? GRAPHITE : "#FFFFFF" }}
+        >
+          {suggestRest ? "Tetap lanjut latihan" : "Lanjut ke sesi"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TodaySessionCard({ program, todayEntry, todayExercises, combined, onComplete, existingSession, onCancelEdit, checkIn }) {
+  const [profile] = useProfile();
   const isEdit = !!existingSession;
   const [photoPreview, setPhotoPreview] = useState(null);
   const [duration, setDuration] = useState(isEdit && existingSession.durationMin != null ? String(existingSession.durationMin) : "60");
@@ -2024,6 +3219,52 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
 
+  const finalExercises = exerciseText
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const strengthExercises = finalExercises.filter(isTrackableExercise);
+
+  const [exerciseLogs, setExerciseLogs] = useState(() =>
+    strengthExercises.map((name) => {
+      const existing = isEdit && Array.isArray(existingSession.exerciseLogs)
+        ? existingSession.exerciseLogs.find((e) => e.name === name)
+        : null;
+      const lastLog = findLastExerciseLog(program, name);
+      const suggestion = suggestNextLoad({ lastLog, level: program.level, goalKey: program.goal, sleepQuality: checkIn?.sleep, youth: isYouth(profile), senior: isSenior(profile) });
+      return {
+        name,
+        weight: existing?.weight != null ? String(existing.weight) : suggestion ? String(suggestion.weight) : "",
+        reps: existing?.reps != null ? String(existing.reps) : suggestion ? String(suggestion.reps) : "",
+        suggestion,
+        lastLog,
+      };
+    })
+  );
+
+  const updateLog = (name, field, val) => {
+    setExerciseLogs((prev) => prev.map((e) => (e.name === name ? { ...e, [field]: val } : e)));
+  };
+
+  useEffect(() => {
+    setExerciseLogs((prev) =>
+      strengthExercises.map((name) => {
+        const existingRow = prev.find((e) => e.name === name);
+        if (existingRow) return existingRow;
+        const lastLog = findLastExerciseLog(program, name);
+        const suggestion = suggestNextLoad({ lastLog, level: program.level, goalKey: program.goal, sleepQuality: checkIn?.sleep, youth: isYouth(profile), senior: isSenior(profile) });
+        return {
+          name,
+          weight: suggestion ? String(suggestion.weight) : "",
+          reps: suggestion ? String(suggestion.reps) : "",
+          suggestion,
+          lastLog,
+        };
+      })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseText]);
+
   const handleFileChange = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -2032,12 +3273,13 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
     reader.readAsDataURL(file);
   };
 
-  const finalExercises = exerciseText
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
   const handleComplete = async (withPhoto) => {
+    const finalLogs = exerciseLogs.map((e) => ({
+      name: e.name,
+      weight: e.weight ? parseFloat(e.weight) : null,
+      reps: e.reps ? parseInt(e.reps, 10) : null,
+    }));
+
     const session = {
       date: todayEntry.date,
       label: todayEntry.label,
@@ -2046,6 +3288,7 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
       weight: weight ? parseFloat(weight) : null,
       rpe: rpe ? parseInt(rpe, 10) : null,
       exercises: finalExercises,
+      exerciseLogs: finalLogs,
     };
     onComplete(session);
 
@@ -2056,14 +3299,63 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
     if (heartRate) stats.push({ label: "DETAK JANTUNG", value: `${heartRate} bpm` });
     if (weight) stats.push({ label: "BERAT BADAN", value: `${weight} kg` });
     if (rpe) stats.push({ label: "RPE", value: `${rpe}/10` });
+    const topLift = finalLogs.filter((l) => l.weight != null).sort((a, b) => b.weight - a.weight)[0];
+    if (topLift) stats.push({ label: topLift.name, value: `${topLift.weight} kg x ${topLift.reps || "?"}` });
+
+    // Progres program (termasuk sesi yang baru saja diselesaikan)
+    const { days } = buildSchedule(program);
+    const totalPlanned = days.filter((d) => !d.rest).length;
+    const doneCountAfter = program.completedSessions.filter((s) => s.date !== session.date).length + 1;
+    const progressPct = totalPlanned > 0 ? Math.round((doneCountAfter / totalPlanned) * 100) : null;
+
+    // Deteksi rekor pribadi (PR): beban hari ini lebih tinggi dari rekor permanen
+    // (lintas program — supaya tidak reset kalau ganti/reset program)
+    let persistentPrs = {};
+    try {
+      const raw = window.localStorage.getItem("history:prs");
+      persistentPrs = raw ? JSON.parse(raw) : {};
+    } catch (e) {}
+    let prExercise = null;
+    const updatedPrs = { ...persistentPrs };
+    finalLogs.forEach((log) => {
+      if (log.weight == null) return;
+      const existing = persistentPrs[log.name];
+      if (!existing || log.weight > existing.weight) {
+        if (existing) prExercise = log.name; // cuma dianggap "PR baru" kalau memang ada rekor sebelumnya untuk dilewati
+        updatedPrs[log.name] = { weight: log.weight, reps: log.reps, date: session.date };
+      }
+    });
+    try {
+      window.localStorage.setItem("history:prs", JSON.stringify(updatedPrs));
+    } catch (e) {}
+    const prBadge = prExercise ? `🏆 Rekor baru — ${prExercise}!` : null;
+
+    // Tren berat badan (maksimal 6 titik terakhir termasuk hari ini)
+    const pastWeights = program.completedSessions
+      .filter((s) => s.date !== session.date && s.weight != null)
+      .map((s) => s.weight);
+    const weightTrendData = weight ? [...pastWeights, parseFloat(weight)].slice(-6) : null;
+
+    // Kartu share: tampilkan gerakan inti + kardio saja.
+    // Pemanasan, peregangan, dan latihan keseimbangan disembunyikan
+    // supaya kartu tidak terlalu ramai saat dibagikan.
+    const shareExercises = finalExercises.filter(
+      (ex) =>
+        !ex.startsWith("Pemanasan dinamis:") &&
+        !ex.startsWith("Peregangan:") &&
+        !ex.startsWith("Latihan keseimbangan:")
+    );
 
     await downloadPhotoShareCard({
       photoDataUrl: withPhoto ? photoPreview : null,
       headline: `Sesi ${todayEntry.label} Selesai!`,
       stats,
-      listBlock: finalExercises,
+      listBlock: shareExercises,
       footer: `Minggu ${todayEntry.weekNum} dari ${program.durationWeeks}${todayEntry.deload ? " · Deload" : ""} · Jejak`,
       filename: `sesi-${todayEntry.label}-${todayEntry.date}`,
+      progressPct,
+      prBadge,
+      weightTrend: weightTrendData && weightTrendData.length >= 2 ? weightTrendData : null,
     });
     setJustCompleted(true);
     setTimeout(() => setJustCompleted(false), 2500);
@@ -2074,7 +3366,13 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
       <div className="flex items-center justify-between">
         <span className="text-sm uppercase tracking-wide" style={{ color: MUTED }}>
           {isEdit ? "Edit sesi" : "Hari ini"} · Minggu {todayEntry.weekNum}
-          {todayEntry.deload ? " · Deload" : ""}
+          {todayEntry.deload ? (
+            <span>
+              {" "}· Deload<InfoTooltip text={GLOSSARY_TERMS[2].def} />
+            </span>
+          ) : (
+            ""
+          )}
         </span>
         {isEdit && onCancelEdit && (
           <button onClick={onCancelEdit} className="text-xs" style={{ color: MUTED }}>
@@ -2088,6 +3386,21 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
       <div className="text-xs mb-3" style={{ color: MUTED }}>
         {combined.scheme} · istirahat {combined.rest}
       </div>
+
+      {checkIn && (checkIn.painNote || checkIn.sleepNote) && (
+        <div className="mb-3 p-3 rounded-lg" style={{ backgroundColor: "#FFF8ED", border: "1px solid #F0DFC0" }}>
+          {checkIn.painNote && (
+            <p className="text-xs" style={{ color: "#7A5A20" }}>
+              ⚠ {checkIn.painNote}
+            </p>
+          )}
+          {checkIn.sleepNote && (
+            <p className="text-xs mt-1" style={{ color: "#7A5A20" }}>
+              😴 {checkIn.sleepNote}
+            </p>
+          )}
+        </div>
+      )}
 
       {editingExercises ? (
         <div className="mb-3">
@@ -2103,11 +3416,59 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
           </button>
         </div>
       ) : (
-        <div className="mb-3">
-          <div className="text-xs mb-1" style={{ color: MUTED }}>
-            {finalExercises.join(" · ")}
+        <div className="mb-4">
+          <div className="flex flex-col gap-3">
+            {exerciseLogs.map((ex) => (
+              <div key={ex.name} className="p-3 rounded-lg" style={{ backgroundColor: "var(--c-page)" }}>
+                <span className="text-sm font-semibold" style={{ color: GRAPHITE }}>
+                  {ex.name}
+                </span>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wide" style={{ color: MUTED }}>
+                      Beban (kg)
+                    </span>
+                    <input
+                      type="number"
+                      value={ex.weight}
+                      onChange={(e) => updateLog(ex.name, "weight", e.target.value)}
+                      placeholder="kg"
+                      className="w-full text-sm bg-transparent border-b outline-none py-1"
+                      style={{ borderColor: LINE, color: GRAPHITE }}
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wide" style={{ color: MUTED }}>
+                      Repetisi tercapai
+                    </span>
+                    <input
+                      type="number"
+                      value={ex.reps}
+                      onChange={(e) => updateLog(ex.name, "reps", e.target.value)}
+                      placeholder="reps"
+                      className="w-full text-sm bg-transparent border-b outline-none py-1"
+                      style={{ borderColor: LINE, color: GRAPHITE }}
+                    />
+                  </div>
+                </div>
+                {ex.suggestion ? (
+                  <p className="text-[11px] mt-2" style={{ color: "#1F9254" }}>
+                    💡 Saran: {ex.suggestion.weight} kg × {ex.suggestion.reps} — {ex.suggestion.note}
+                  </p>
+                ) : (
+                  <p className="text-[11px] mt-2" style={{ color: MUTED }}>
+                    Belum ada riwayat gerakan ini — isi beban yang Anda pakai hari ini.
+                  </p>
+                )}
+              </div>
+            ))}
+            {finalExercises.some((ex) => !isTrackableExercise(ex)) && (
+              <div className="text-xs" style={{ color: MUTED }}>
+                {finalExercises.filter((ex) => !isTrackableExercise(ex)).join(" · ")}
+              </div>
+            )}
           </div>
-          <button onClick={() => setEditingExercises(true)} className="text-xs" style={{ color: MUTED }}>
+          <button onClick={() => setEditingExercises(true)} className="text-xs mt-2" style={{ color: MUTED }}>
             Sesuaikan gerakan/alat yang tersedia
           </button>
         </div>
@@ -2123,7 +3484,7 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
         <Field label="Berat badan (opsional)" unit="kg">
           <NumberInput value={weight} onChange={setWeight} placeholder="opsional" min={20} max={300} />
         </Field>
-        <Field label="RPE (opsional)">
+        <Field label={<span>RPE (opsional)<InfoTooltip text={GLOSSARY_TERMS[0].def} /></span>}>
           <Select value={rpe} onChange={setRpe} options={RPE_SCALE.map((r) => ({ value: String(r.value), label: r.label }))} />
         </Field>
       </div>
@@ -2232,6 +3593,7 @@ function ProgramDashboard({ program, onComplete, onReset }) {
   const [showFullSchedule, setShowFullSchedule] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [openSession, setOpenSession] = useState(false);
+  const [checkInDone, setCheckInDone] = useState(null); // hasil cek kondisi, null = belum dicek
   const [selectedDate, setSelectedDate] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editingPreviewExercises, setEditingPreviewExercises] = useState(false);
@@ -2253,16 +3615,18 @@ function ProgramDashboard({ program, onComplete, onReset }) {
 
   useEffect(() => {
     setEditingPreviewExercises(false);
+    setOpenSession(false);
+    setCheckInDone(null);
   }, [activeDate]);
 
   const trainingDays = days.filter((d) => !d.rest);
   const doneCount = program.completedSessions.length;
   const progressPct = trainingDays.length > 0 ? Math.round((doneCount / trainingDays.length) * 100) : 0;
 
-  const activeExercises = activeEntry && !activeEntry.rest ? exercisesForSession(equipKeys, activeEntry.key, program.goal) : [];
+  const activeExercises = activeEntry && !activeEntry.rest ? exercisesForSession(equipKeys, activeEntry.key, program.goal, activeEntry.cardioType, isSenior(profile)) : [];
   const displayExercises =
     exerciseOverride && exerciseOverride.date === activeDate ? exerciseOverride.list : activeExercises;
-  const combined = activeEntry ? combinedScheme(program.level, program.goal, activeEntry.deload) : null;
+  const combined = activeEntry ? combinedScheme(program.level, program.goal, activeEntry.deload, isYouth(profile) || isSenior(profile)) : null;
 
   const weeksGrouped = [];
   for (let w = 1; w <= program.durationWeeks; w++) {
@@ -2310,6 +3674,22 @@ function ProgramDashboard({ program, onComplete, onReset }) {
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-4">
+      {isYouth(profile) && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-full w-fit" style={{ backgroundColor: "#FFF3CD" }}>
+          <span style={{ fontSize: 14 }}>🎓</span>
+          <span className="text-xs font-semibold" style={{ color: "#7A5A20" }}>
+            Mode Latihan Remaja Aktif — beban dibatasi, fokus teknik dulu. Tetap didampingi pelatih/guru.
+          </span>
+        </div>
+      )}
+      {isSenior(profile) && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-full w-fit" style={{ backgroundColor: "#E0F2F1" }}>
+          <span style={{ fontSize: 14 }}>🧓</span>
+          <span className="text-xs font-semibold" style={{ color: "#0F6E56" }}>
+            Mode Latihan Lansia Aktif — kardio santai, progresi bertahap, latihan keseimbangan ditambahkan.
+          </span>
+        </div>
+      )}
       {/* Baris statistik atas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-5 flex items-center gap-3">
@@ -2388,7 +3768,7 @@ function ProgramDashboard({ program, onComplete, onReset }) {
                 </div>
               )}
             </div>
-          ) : (openSession || editMode) ? (
+          ) : editMode ? (
             <TodaySessionCard
               program={program}
               todayEntry={activeEntry}
@@ -2398,11 +3778,36 @@ function ProgramDashboard({ program, onComplete, onReset }) {
                 onComplete(session);
                 setEditMode(false);
                 setOpenSession(false);
+                setCheckInDone(null);
               }}
-              existingSession={editMode ? activeDone : null}
+              existingSession={activeDone}
               onCancelEdit={() => {
                 setEditMode(false);
                 setOpenSession(false);
+                setCheckInDone(null);
+              }}
+            />
+          ) : openSession && !checkInDone ? (
+            <PreSessionCheckIn
+              onProceed={(data) => setCheckInDone(data)}
+              onSkip={() => setOpenSession(false)}
+            />
+          ) : openSession && checkInDone ? (
+            <TodaySessionCard
+              program={program}
+              todayEntry={activeEntry}
+              todayExercises={displayExercises}
+              combined={combined}
+              checkIn={checkInDone}
+              onComplete={(session) => {
+                onComplete(session);
+                setOpenSession(false);
+                setCheckInDone(null);
+              }}
+              existingSession={null}
+              onCancelEdit={() => {
+                setOpenSession(false);
+                setCheckInDone(null);
               }}
             />
           ) : activeDone ? (
@@ -2475,7 +3880,8 @@ function ProgramDashboard({ program, onComplete, onReset }) {
               ) : (
                 <div className="flex flex-col gap-1 mt-4">
                   {displayExercises.map((ex, i) => {
-                    const cardioMatch = ex.match(/^(Kardio: .+?\s)(\d+)(\smenit)$/);
+                    const cardioMatch = ex.match(/^(Kardio(?: \([A-Z]+\))?: .+?\s)(\d+)(\smenit)(.*)$/);
+                    const isStretch = ex.startsWith("Peregangan:") || ex.startsWith("Pemanasan dinamis:");
                     return (
                       <div key={i} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? "none" : `1px solid ${LINE}` }}>
                         <span
@@ -2485,7 +3891,7 @@ function ProgramDashboard({ program, onComplete, onReset }) {
                           {i + 1}
                         </span>
                         <span className="text-sm flex-1" style={{ color: GRAPHITE }}>
-                          {cardioMatch ? cardioMatch[1].trim() : ex}
+                          {cardioMatch ? cardioMatch[1].trim() + (cardioMatch[4] ? " " + cardioMatch[4].trim() : "") : ex}
                         </span>
                         {cardioMatch ? (
                           <div className="flex items-center gap-1 shrink-0">
@@ -2495,7 +3901,7 @@ function ProgramDashboard({ program, onComplete, onReset }) {
                               onChange={(e) => {
                                 const newMin = e.target.value.replace(/[^0-9]/g, "") || "0";
                                 const newList = [...displayExercises];
-                                newList[i] = `${cardioMatch[1]}${newMin}${cardioMatch[3]}`;
+                                newList[i] = `${cardioMatch[1]}${newMin}${cardioMatch[3]}${cardioMatch[4] || ""}`;
                                 setExerciseOverride({ date: activeDate, list: newList });
                               }}
                               className="w-12 text-xs text-right bg-transparent border-b outline-none"
@@ -2503,7 +3909,7 @@ function ProgramDashboard({ program, onComplete, onReset }) {
                             />
                             <span className="text-xs" style={{ color: MUTED }}>menit</span>
                           </div>
-                        ) : (
+                        ) : isStretch ? null : (
                           <span className="text-xs shrink-0" style={{ color: MUTED }}>
                             {combined.scheme}
                           </span>
@@ -2734,6 +4140,8 @@ function ProgramDashboard({ program, onComplete, onReset }) {
         </Card>
       </div>
 
+      <TrainingLoadCard program={program} days={days} />
+
       {showFullSchedule && (
         <Card className="p-6">
           <span className="text-xs uppercase tracking-wide" style={{ color: MUTED }}>
@@ -2857,7 +4265,7 @@ function LatihanPanel() {
             <button
               onClick={() => setConfirmReset(false)}
               className="px-3 py-1.5 text-xs font-semibold rounded-full"
-              style={{ backgroundColor: "#FFFFFF", color: GRAPHITE, border: `1px solid ${LINE}` }}
+              style={{ backgroundColor: "var(--c-surface)", color: GRAPHITE, border: `1px solid ${LINE}` }}
             >
               Batal
             </button>
@@ -2925,6 +4333,7 @@ function NutrisiPanel() {
   const h = parseFloat(heightCm);
   const a = parseFloat(age);
   const valid = ![w, h, a].some((x) => isNaN(x));
+  const proteinFactor = goal === "cutting" ? 2.2 : goal === "bulking" ? 1.8 : goal === "muscle" ? 2.2 : 2.0;
 
   let calories = null;
   let proteinG = null;
@@ -2938,7 +4347,6 @@ function NutrisiPanel() {
       goal === "cutting" ? tdee - 500 : goal === "bulking" ? tdee + 300 : goal === "muscle" ? tdee + 150 : tdee;
     calories = Math.max(calories, 1200);
 
-    const proteinFactor = goal === "cutting" ? 2.2 : goal === "bulking" ? 1.8 : goal === "muscle" ? 2.2 : 2.0;
     proteinG = proteinFactor * w;
     const proteinKcal = proteinG * 4;
     const fatKcal = calories * 0.25;
@@ -3012,6 +4420,30 @@ function NutrisiPanel() {
 
           {(goal === "cutting" || goal === "bulking") && (
             <IdealWeightHint height={heightCm} weight={weightKg} gender={gender} />
+          )}
+
+          {goal === "cutting" && parseFloat(age) > 0 && parseFloat(age) < 18 && (
+            <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: "#FFF3CD" }}>
+              <p className="text-xs" style={{ color: "#7A5A20" }}>
+                ⚠ Usia di bawah 18 tahun masih dalam masa pertumbuhan yang
+                butuh asupan kalori cukup. Menjalani defisit kalori sengaja
+                (cutting) di usia ini sebaiknya didiskusikan dulu dengan
+                orang tua, dokter, atau ahli gizi — bukan dilakukan sendiri
+                tanpa pengawasan.
+              </p>
+            </div>
+          )}
+
+          {parseFloat(age) >= 60 && (
+            <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: "#E0F2F1" }}>
+              <p className="text-xs" style={{ color: "#0F6E56" }}>
+                🧓 Riset PROT-AGE merekomendasikan protein lebih tinggi untuk
+                usia lansia (1,2–1,5 g/kg) guna melawan sarcopenia (kehilangan
+                massa otot akibat usia). Target protein di kalkulator ini
+                ({proteinFactor} g/kg untuk tujuan yang dipilih) sudah berada
+                di atas rekomendasi tersebut — tidak perlu penyesuaian tambahan.
+              </p>
+            </div>
           )}
 
           <Footnote>
@@ -3204,7 +4636,7 @@ function OneRmPanel() {
         <ResultPanel
           icon={Gauge}
           iconColor={ICON_COLORS.onerm}
-          title="Estimasi 1RM"
+          title={<span>Estimasi 1RM<InfoTooltip text={GLOSSARY_TERMS[1].def} /></span>}
           value={oneRm}
           decimals={1}
           unit={`kg · estimasi 1RM${exerciseName ? " · " + exerciseName : ""}`}
@@ -3512,9 +4944,10 @@ function HistoryPanel({ onNavigate }) {
     <div className="p-6 md:p-8">
       {!hasStorage && (
         <div className="mb-4 p-3 text-xs rounded-sm" style={{ backgroundColor: "#F3EAD8", color: "#7A5A20" }}>
-          Browser Anda tidak mendukung penyimpanan lokal — riwayat hanya
-          bertahan selama sesi ini berjalan dan akan hilang saat halaman
-          ditutup.
+          Penyimpanan permanen tidak tersedia di lingkungan pratinjau ini —
+          riwayat hanya bertahan selama sesi berjalan. Saat aplikasi
+          benar-benar dideploy, sambungkan ke local storage/database agar
+          riwayat tersimpan permanen di perangkat pengguna.
         </div>
       )}
       <SessionHistorySection onNavigate={onNavigate} />
@@ -3525,6 +4958,9 @@ function HistoryPanel({ onNavigate }) {
       <HistorySection title="Target kalori harian" unit="kkal" storageKey="history:calories" color={TRACK} />
       <HistorySection title="Estimasi 1RM" unit="kg" storageKey="history:1rm" color={GOLD} />
       <HistorySection title="Kebutuhan cairan harian" unit="ml" storageKey="history:hidrasi" color={TURF} />
+      <HistorySection title="Lingkar pinggang" unit="cm" storageKey="history:waist" color={TRACK} />
+      <HistorySection title="Lingkar dada" unit="cm" storageKey="history:chest" color={TURF} />
+      <HistorySection title="Lingkar lengan" unit="cm" storageKey="history:arm" color={GOLD} />
     </div>
   );
 }
@@ -3695,6 +5131,115 @@ function OnboardingOverlay({ onDone }) {
   );
 }
 
+// ---------- GERBANG AKTIVASI (opsional, dikendalikan saklar) ----------
+//
+// Saklar ini SENGAJA default mati (false) supaya deploy pertama tidak
+// mengunci siapa pun. Nyalakan hanya setelah setup Mayar.id + Netlify
+// Functions selesai, dengan mengisi env var VITE_ENABLE_PAYWALL=true
+// di pengaturan Netlify (Site configuration > Environment variables).
+const PAYWALL_ENABLED =
+  typeof import.meta !== "undefined" &&
+  import.meta.env &&
+  import.meta.env.VITE_ENABLE_PAYWALL === "true";
+
+function loadActivationFlag() {
+  if (typeof window === "undefined" || !window.localStorage) return false;
+  try {
+    return window.localStorage.getItem("jejak_activated") === "1";
+  } catch (e) {
+    return false;
+  }
+}
+
+export function ActivationGate({ children }) {
+  const [activated, setActivated] = useState(loadActivationFlag);
+  const [code, setCode] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  if (!PAYWALL_ENABLED || activated) {
+    return children;
+  }
+
+  const handleActivate = async () => {
+    if (!code.trim()) return;
+    setChecking(true);
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/.netlify/functions/verify-license", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ licenseCode: code.trim() }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        if (window.localStorage) {
+          try {
+            window.localStorage.setItem("jejak_activated", "1");
+            window.localStorage.setItem("jejak_license_code", code.trim());
+          } catch (e) {}
+        }
+        setActivated(true);
+      } else {
+        setErrorMsg(data.message || "Kode tidak valid. Periksa kembali kode Anda.");
+      }
+    } catch (e) {
+      setErrorMsg("Gagal menghubungi server. Cek koneksi internet Anda dan coba lagi.");
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ backgroundColor: "#10233B" }}
+    >
+      <div className="w-full max-w-sm rounded-2xl p-6" style={{ backgroundColor: "#FFFFFF" }}>
+        <div
+          className="flex items-center justify-center rounded-lg mx-auto mb-4"
+          style={{ width: 48, height: 48, backgroundColor: "#C1440E" }}
+        >
+          <span style={{ color: "#FFFFFF", fontWeight: 900, fontSize: 20 }}>J</span>
+        </div>
+        <h1 className="font-black text-xl text-center" style={{ color: "#1A1D29" }}>
+          Aktifkan Jejak
+        </h1>
+        <p className="text-sm text-center mt-2" style={{ color: "#6B7280" }}>
+          Masukkan kode aktivasi yang Anda terima setelah pembelian.
+        </p>
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="Kode aktivasi"
+          className="w-full mt-5 px-4 py-3 text-sm rounded-lg outline-none"
+          style={{ border: "1px solid #E8EAE5", color: "#1A1D29" }}
+        />
+        {errorMsg && (
+          <p className="text-xs mt-2" style={{ color: "#C0392B" }}>
+            {errorMsg}
+          </p>
+        )}
+        <button
+          onClick={handleActivate}
+          disabled={checking || !code.trim()}
+          className="w-full mt-4 py-3 text-sm font-semibold rounded-full disabled:opacity-50"
+          style={{ backgroundColor: "#C1440E", color: "#FFFFFF" }}
+        >
+          {checking ? "Memeriksa..." : "Aktifkan"}
+        </button>
+        <p className="text-xs text-center mt-4" style={{ color: "#6B7280" }}>
+          Belum punya kode?{" "}
+          <a href="/beranda.html" style={{ color: "#C1440E", fontWeight: 600 }}>
+            Lihat cara membeli
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [tab, setTab] = useState("dashboard");
   const [mounted, setMounted] = useState(false);
@@ -3722,6 +5267,28 @@ export default function App() {
       clearTimeout(t1);
       clearTimeout(t2);
     };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.localStorage) return;
+    const notifOn = window.localStorage.getItem("jejak_notif_enabled") === "1";
+    if (!notifOn || typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    try {
+      const rawProgram = window.localStorage.getItem("activeProgram");
+      if (!rawProgram) return;
+      const program = JSON.parse(rawProgram);
+      const { days } = buildSchedule(program);
+      const todayStr = toDateStr(new Date());
+      const todayEntry = days.find((d) => d.date === todayStr);
+      const alreadyDone = (program.completedSessions || []).some((s) => s.date === todayStr);
+      if (todayEntry && !todayEntry.rest && !alreadyDone) {
+        new Notification("Jejak — jangan lewatkan sesi hari ini", {
+          body: `Sesi ${todayEntry.label} hari ini masih menunggu — yuk lanjutkan.`,
+          icon: "/icon-192.png",
+        });
+      }
+    } catch (e) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isCalcTab = CALC_TABS.some((t) => t.key === tab);
@@ -3925,7 +5492,10 @@ export default function App() {
               {tab === "latihan" && <LatihanPanel />}
               {tab === "nutrisi" && <NutrisiPanel />}
               {tab === "riwayat" && <HistoryPanel onNavigate={setTab} />}
-              {tab === "profil" && <ProfilePanel />}
+              {tab === "profil" && <ProfilePanel onNavigate={setTab} />}
+              {tab === "glossary" && <GlossaryPanel onNavigate={setTab} />}
+              {tab === "measurements" && <MeasurementsPanel onNavigate={setTab} />}
+              {tab === "prs" && <PersonalRecordsPanel onNavigate={setTab} />}
             </div>
           </main>
 

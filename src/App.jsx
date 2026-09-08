@@ -2018,19 +2018,42 @@ function combinedScheme(level, goalKey, isDeload, capVolume) {
 // - Usia <18: selalu "teknik dulu" (double progression) dengan kenaikan lebih kecil,
 //   mengikuti pedoman NSCA/ACSM/AAP soal latihan beban remaja.
 
-function findLastExerciseLog(program, exerciseName) {
+function findLastExerciseLog(program, exerciseName, bodyweight) {
   for (let i = program.completedSessions.length - 1; i >= 0; i--) {
     const s = program.completedSessions[i];
     if (Array.isArray(s.exerciseLogs)) {
-      const found = s.exerciseLogs.find((e) => e.name === exerciseName && e.weight != null);
+      const found = s.exerciseLogs.find(
+        (e) => e.name === exerciseName && (bodyweight ? e.reps != null : e.weight != null)
+      );
       if (found) return { ...found, rpe: s.rpe };
     }
   }
   return null;
 }
 
-function suggestNextLoad({ lastLog, level, goalKey, sleepQuality, youth, senior }) {
-  if (!lastLog || lastLog.weight == null) return null;
+function suggestNextLoad({ lastLog, level, goalKey, sleepQuality, youth, senior, bodyweight }) {
+  if (!lastLog) return null;
+
+  // Latihan tanpa alat: progres lewat repetisi & variasi, bukan beban
+  if (bodyweight) {
+    const goalBw = TRAINING_GOALS[goalKey] || TRAINING_GOALS.maintenance;
+    if (lastLog.reps == null) return null;
+    if (sleepQuality === "kurang") {
+      return { reps: lastLog.reps, note: "Tidur kurang semalam — pertahankan repetisi ini dulu." };
+    }
+    if (goalBw.repMax != null && lastLog.reps >= goalBw.repMax) {
+      return {
+        reps: goalBw.repMin,
+        note: `Sudah capai ${goalBw.repMax} rep — naik ke variasi yang lebih menantang (mis. tempo lebih lambat, kaki diangkat).`,
+      };
+    }
+    return {
+      reps: lastLog.reps + 1,
+      note: "Tambah 1 repetisi dari sesi sebelumnya.",
+    };
+  }
+
+  if (lastLog.weight == null) return null;
   const goal = TRAINING_GOALS[goalKey] || TRAINING_GOALS.maintenance;
   const { repMin, repMax } = goal;
   const conservative = youth || senior;
@@ -2411,8 +2434,18 @@ function truncateToWidth(ctx, text, maxWidth) {
   return t + "…";
 }
 
-async function downloadPhotoShareCard({ photoDataUrl, headline, stats, listBlock, footer, filename, progressPct, prBadge, weightTrend }) {
-  // Ukuran Instagram Story (9:16)
+async function downloadPhotoShareCard({
+  photoDataUrl,
+  sessionLabel,
+  weekLabel,
+  progressPct,
+  stats,
+  loadBars,
+  loadBarLabel,
+  weekDots,
+  prBadge,
+  filename,
+}) {
   const width = 1080;
   const height = 1920;
   const PAD = 72;
@@ -2424,15 +2457,14 @@ async function downloadPhotoShareCard({ photoDataUrl, headline, stats, listBlock
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
+  // Latar: foto pengguna atau warna brand
   if (photoDataUrl) {
     try {
       const imgEl = await loadImageEl(photoDataUrl);
       const scale = Math.max(width / imgEl.width, height / imgEl.height);
       const sw = width / scale;
       const sh = height / scale;
-      const sx = (imgEl.width - sw) / 2;
-      const sy = (imgEl.height - sh) / 2;
-      ctx.drawImage(imgEl, sx, sy, sw, sh, 0, 0, width, height);
+      ctx.drawImage(imgEl, (imgEl.width - sw) / 2, (imgEl.height - sh) / 2, sw, sh, 0, 0, width, height);
     } catch (e) {
       ctx.fillStyle = INK;
       ctx.fillRect(0, 0, width, height);
@@ -2442,172 +2474,163 @@ async function downloadPhotoShareCard({ photoDataUrl, headline, stats, listBlock
     ctx.fillRect(0, 0, width, height);
   }
 
-  // Gradasi: gelap di atas & bawah supaya teks terbaca, foto tetap terlihat di tengah
+  // Gradasi: gelap di atas & bawah, terang di tengah supaya foto terlihat
   const grad = ctx.createLinearGradient(0, 0, 0, height);
-  grad.addColorStop(0, "rgba(10,20,34,0.82)");
-  grad.addColorStop(0.28, "rgba(10,20,34,0.34)");
-  grad.addColorStop(0.52, "rgba(10,20,34,0.18)");
-  grad.addColorStop(0.72, "rgba(10,20,34,0.68)");
-  grad.addColorStop(1, "rgba(10,20,34,0.97)");
+  grad.addColorStop(0, "rgba(10,20,34,0.88)");
+  grad.addColorStop(0.26, "rgba(10,20,34,0.36)");
+  grad.addColorStop(0.46, "rgba(10,20,34,0.36)");
+  grad.addColorStop(1, "rgba(10,20,34,0.96)");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, width, height);
 
-  // Sentuhan warna brand di tepi bawah supaya tidak terasa datar
-  const accentGrad = ctx.createLinearGradient(0, height - 420, 0, height);
-  accentGrad.addColorStop(0, "rgba(193,68,14,0)");
-  accentGrad.addColorStop(1, "rgba(193,68,14,0.18)");
-  ctx.fillStyle = accentGrad;
-  ctx.fillRect(0, height - 420, width, 420);
+  const accent = ctx.createLinearGradient(0, height * 0.62, 0, height);
+  accent.addColorStop(0, "rgba(193,68,14,0)");
+  accent.addColorStop(1, "rgba(193,68,14,0.18)");
+  ctx.fillStyle = accent;
+  ctx.fillRect(0, height * 0.62, width, height * 0.38);
 
-  let y = 320;
+  // ---------- BLOK ATAS ----------
+  ctx.font = "600 20px sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.6)";
+  ctx.fillText(`JEJAK · ${weekLabel}`, PAD, 108);
+
+  ctx.font = "900 68px sans-serif";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillText(truncateToWidth(ctx, sessionLabel, contentW - 200), PAD, 172);
+
+  // Cincin progres
+  if (progressPct != null) {
+    const cx = width - PAD - 76;
+    const cy = 150;
+    const radius = 76;
+    ctx.lineWidth = 16;
+    ctx.strokeStyle = "rgba(255,255,255,0.28)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = TRACK;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * progressPct) / 100);
+    ctx.stroke();
+    ctx.font = "900 30px sans-serif";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${progressPct}%`, cx, cy + 2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  // Statistik utama (maksimal 3 supaya tidak sesak)
+  const topStats = stats.slice(0, 3);
+  const statW = contentW / 3;
+  topStats.forEach((s, i) => {
+    const x = PAD + i * statW;
+    ctx.font = "900 76px sans-serif";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText(String(s.value), x, 320);
+    const valW = ctx.measureText(String(s.value)).width;
+    if (s.unit) {
+      ctx.font = "24px sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      ctx.fillText(s.unit, x + valW + 10, 320);
+    }
+    ctx.font = "600 18px sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.fillText(s.label.toUpperCase(), x, 356);
+  });
 
   if (prBadge) {
     ctx.font = "900 26px sans-serif";
     const textW = ctx.measureText(prBadge).width;
     ctx.fillStyle = "rgba(255,196,0,0.22)";
     ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(PAD, y - 36, textW + 52, 50, 25);
-    else ctx.rect(PAD, y - 36, textW + 52, 50);
+    if (ctx.roundRect) ctx.roundRect(PAD, 396, textW + 52, 54, 27);
+    else ctx.rect(PAD, 396, textW + 52, 54);
     ctx.fill();
     ctx.fillStyle = "#FFC400";
-    ctx.fillText(prBadge, PAD + 26, y - 2);
-    y += 66;
+    ctx.fillText(prBadge, PAD + 26, 431);
   }
 
-  // Statistik: 2 kolom
-  const colW = contentW / 2;
-  stats.forEach((s, i) => {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const x = PAD + col * colW;
-    const yy = y + row * 128;
-    ctx.font = "600 20px sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.72)";
-    ctx.fillText(truncateToWidth(ctx, s.label.toUpperCase(), colW - 24), x, yy);
-    ctx.font = "900 42px sans-serif";
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillText(truncateToWidth(ctx, String(s.value), colW - 24), x, yy + 44);
-  });
+  // ---------- BLOK BAWAH ----------
+  let y = height - 744;
 
-  let cursorY = y + Math.ceil(stats.length / 2) * 128 + 40;
-
-  if (listBlock && listBlock.length > 0) {
+  if (loadBars && loadBars.length > 0) {
     ctx.font = "600 20px sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.72)";
-    ctx.fillText("GERAKAN", PAD, cursorY);
-    cursorY += 36;
-    ctx.font = "26px sans-serif";
-    ctx.fillStyle = "#FFFFFF";
-    listBlock.forEach((line) => {
-      ctx.fillText(truncateToWidth(ctx, `• ${line}`, contentW), PAD, cursorY);
-      cursorY += 38;
-    });
-  }
-
-  const hasChart = weightTrend && weightTrend.length >= 2;
-  if (hasChart) {
-    cursorY += 30;
-    ctx.font = "600 20px sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.72)";
-    ctx.fillText("TREN BERAT BADAN", PAD, cursorY);
-    cursorY += 30;
-    const chartTop = cursorY;
-    const chartBottom = cursorY + 92;
-    const vals = weightTrend;
-    const min = Math.min(...vals);
-    const max = Math.max(...vals);
-    const range = max - min || 1;
-    ctx.beginPath();
-    vals.forEach((v, i) => {
-      const px = PAD + (i / (vals.length - 1)) * contentW;
-      const py = chartBottom - ((v - min) / range) * (chartBottom - chartTop);
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    });
-    ctx.strokeStyle = TRACK;
-    ctx.lineWidth = 4;
-    ctx.lineJoin = "round";
-    ctx.stroke();
-    vals.forEach((v, i) => {
-      const px = PAD + (i / (vals.length - 1)) * contentW;
-      const py = chartBottom - ((v - min) / range) * (chartBottom - chartTop);
-      ctx.beginPath();
-      ctx.arc(px, py, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.fillText(loadBarLabel || "LOAD BY EXERCISE (kg)", PAD, y);
+    y += 48;
+    const maxLoad = Math.max(...loadBars.map((b) => b.value), 1);
+    const barMaxW = contentW - 360;
+    loadBars.slice(0, 5).forEach((b) => {
+      ctx.font = "22px sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      ctx.fillText(truncateToWidth(ctx, b.name, 280), PAD, y);
+      const bw = Math.max((b.value / maxLoad) * barMaxW, 8);
       ctx.fillStyle = TRACK;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(PAD + 304, y - 18, bw, 22, 11);
+      else ctx.rect(PAD + 304, y - 18, bw, 22);
       ctx.fill();
+      ctx.font = "700 22px sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.fillText(String(b.value), PAD + 304 + bw + 16, y);
+      y += 56;
     });
-    ctx.font = "20px sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    ctx.fillText(`${vals[0]} kg`, PAD, chartBottom + 32);
-    ctx.textAlign = "right";
-    ctx.fillText(`${vals[vals.length - 1]} kg`, PAD + contentW, chartBottom + 32);
-    ctx.textAlign = "left";
-    cursorY = chartBottom + 56;
+    y += 12;
   }
 
-  if (progressPct != null) {
-    const barY = cursorY + 20;
-    ctx.font = "20px sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    ctx.fillText(`PROGRES PROGRAM · ${progressPct}%`, PAD, barY);
-    const trackY = barY + 18;
-    ctx.fillStyle = "rgba(255,255,255,0.22)";
-    ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(PAD, trackY, contentW, 12, 6);
-    else ctx.rect(PAD, trackY, contentW, 12);
-    ctx.fill();
-    ctx.fillStyle = TRACK;
-    ctx.beginPath();
-    const fillW = Math.max((contentW * progressPct) / 100, 12);
-    if (ctx.roundRect) ctx.roundRect(PAD, trackY, fillW, 12, 6);
-    else ctx.rect(PAD, trackY, fillW, 12);
-    ctx.fill();
+  if (weekDots && weekDots.length === 7) {
+    ctx.font = "600 20px sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.fillText("THIS WEEK", PAD, y);
+    y += 40;
+    const dayLetters = ["M", "T", "W", "T", "F", "S", "S"];
+    weekDots.forEach((done, i) => {
+      const x = PAD + i * 88;
+      const h = done ? 48 : 16;
+      ctx.fillStyle = done ? TRACK : "rgba(255,255,255,0.25)";
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y + 52 - h, 60, h, 10);
+      else ctx.rect(x, y + 52 - h, 60, h);
+      ctx.fill();
+      ctx.font = "18px sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.textAlign = "center";
+      ctx.fillText(dayLetters[i], x + 30, y + 80);
+      ctx.textAlign = "left";
+    });
   }
 
-  // ---------- Blok bawah: headline + logo Jejak ----------
-  ctx.fillStyle = TRACK;
-  ctx.fillRect(PAD, height - 330, 76, 7);
-
-  ctx.font = "900 56px sans-serif";
-  ctx.fillStyle = "#FFFFFF";
-  wrapCanvasText(ctx, headline, PAD, height - 258, contentW, 64);
-
-  // Logo: kotak membulat oranye berisi "J" + wordmark
-  const logoSize = 52;
-  const logoX = PAD;
-  const logoY = height - 148;
+  // Logo Jejak
+  const logoY = height - 152;
+  const logoSize = 76;
   ctx.fillStyle = TRACK;
   ctx.beginPath();
-  if (ctx.roundRect) ctx.roundRect(logoX, logoY, logoSize, logoSize, 14);
-  else ctx.rect(logoX, logoY, logoSize, logoSize);
+  if (ctx.roundRect) ctx.roundRect(PAD, logoY, logoSize, logoSize, 22);
+  else ctx.rect(PAD, logoY, logoSize, logoSize);
   ctx.fill();
-
-  ctx.font = "900 27px sans-serif";
+  ctx.font = "900 38px sans-serif";
   ctx.fillStyle = "#FFFFFF";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("J", logoX + logoSize / 2, logoY + logoSize / 2 + 1);
+  ctx.fillText("J", PAD + logoSize / 2, logoY + logoSize / 2 + 2);
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
 
-  ctx.font = "900 30px sans-serif";
+  ctx.font = "900 36px sans-serif";
   ctx.fillStyle = "#FFFFFF";
-  ctx.fillText("Jejak", logoX + logoSize + 16, logoY + 24);
-
-  ctx.font = "20px sans-serif";
-  ctx.fillStyle = "rgba(255,255,255,0.6)";
-  ctx.fillText(
-    truncateToWidth(ctx, footer.replace(/\s*·\s*Jejak$/, ""), contentW - logoSize - 16),
-    logoX + logoSize + 16,
-    logoY + 48
-  );
+  ctx.fillText("Jejak", PAD + logoSize + 24, logoY + 34);
+  ctx.font = "22px sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.55)";
+  ctx.fillText("Session complete", PAD + logoSize + 24, logoY + 66);
 
   canvas.toBlob((blob) => {
     if (!blob) return;
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${(filename || headline).toLowerCase().replace(/\s+/g, "-")}.png`;
+    a.download = `${(filename || "jejak-session").toLowerCase().replace(/\s+/g, "-")}.png`;
     a.click();
     URL.revokeObjectURL(url);
   });
@@ -3050,7 +3073,7 @@ function ProgramSetupForm({ onStart }) {
   const [durationMode, setDurationMode] = useState("auto");
   const [durationWeeksManual, setDurationWeeksManual] = useState(initialRules.defaultDuration);
   const [dayMode, setDayMode] = useState("auto");
-  const [customDays, setCustomDays] = useState([0, 2, 4]); // Senin, Rabu, Jumat
+  const [customDays, setCustomDays] = useState([]); // kosong: user pilih sendiri dari nol
   const [targetWeight, setTargetWeight] = useState("");
   const [sessionOrder, setSessionOrder] = useState({}); // { "0": "Lower", "1": "Upper", ... }
 
@@ -3063,9 +3086,7 @@ function ProgramSetupForm({ onStart }) {
     if (!r.freqOptions.includes(parseInt(freq, 10))) setFreq(r.defaultFreq);
     if (!r.schemes.includes(manualScheme)) setManualScheme(r.defaultScheme);
     if (!r.durations.includes(durationWeeksManual)) setDurationWeeksManual(r.defaultDuration);
-    if (dayMode === "manual" && !r.freqOptions.includes(customDays.length)) {
-      setCustomDays(FREQ_DAY_MAP[parseInt(r.defaultFreq, 10)] || [0, 2, 4]);
-    }
+
   };
 
   const durationWeeks = durationMode === "auto" ? String(DURATION_RECOMMENDATIONS[goal].weeks) : durationWeeksManual;
@@ -3200,10 +3221,16 @@ function ProgramSetupForm({ onStart }) {
             <p className="text-xs mt-2" style={{ color: MUTED }}>
               <span style={{ color: TRACK, fontWeight: 600 }}>Oranye</span> = hari latihan · Abu-abu = hari istirahat
             </p>
-            {!rules.freqOptions.includes(customDays.length) && (
+            {customDays.length === 0 ? (
               <p className="text-xs mt-1" style={{ color: "#B7791F" }}>
-                ⚠ Level {level} disarankan {rules.freqOptions.join(" atau ")}x per minggu.
+                ⚠ Belum ada hari yang dipilih — ketuk hari-hari yang Anda inginkan untuk berlatih.
               </p>
+            ) : (
+              !rules.freqOptions.includes(customDays.length) && (
+                <p className="text-xs mt-1" style={{ color: "#B7791F" }}>
+                  ⚠ Level {level} disarankan {rules.freqOptions.join(" atau ")}x per minggu.
+                </p>
+              )
             )}
           </Field>
         )}
@@ -3260,6 +3287,9 @@ function ProgramSetupForm({ onStart }) {
         <Footnote>
           {TRAINING_GOALS[goal].note} Kardio otomatis ditambahkan di hari
           kaki/lower{goal === "cutting" ? " — mayoritas santai (LISS), 1x/minggu diselingi interval (HIIT) mengikuti pola 80/20 (minggu deload tetap LISS supaya pemulihan optimal)" : ""}.
+          Jeda antar sesi untuk otot yang sama: 48–72 jam (pedoman ACSM) —
+          jadwal yang dibuat sistem sudah memperhitungkan ini, dan Anda akan
+          diberi peringatan bila menyusun sesi otot sama di hari berturut-turut.
           Pemanasan dinamis (gerakan aktif, bukan diam) otomatis ditambahkan
           di awal tiap sesi — riset menunjukkan peregangan statis sebelum
           angkat beban justru bisa menurunkan performa, sementara pemanasan
@@ -3306,7 +3336,7 @@ function ProgramSetupForm({ onStart }) {
               Jadwal mingguan · {SCHEME_LABELS[scheme].name}
             </span>
             <span className="text-xs block mt-0.5" style={{ color: MUTED }}>
-              {combined.scheme} · istirahat {combined.rest}
+              {combined.scheme} · jeda antar set {combined.rest}
             </span>
           </div>
         </div>
@@ -3491,6 +3521,7 @@ function PreSessionCheckIn({ onProceed, onSkip }) {
 function TodaySessionCard({ program, todayEntry, todayExercises, combined, onComplete, existingSession, onCancelEdit, checkIn }) {
   const [profile] = useProfile();
   const isEdit = !!existingSession;
+  const isBodyweight = program.equipment === "bodyweight";
   const [photoPreview, setPhotoPreview] = useState(null);
   const [duration, setDuration] = useState(isEdit && existingSession.durationMin != null ? String(existingSession.durationMin) : "60");
   const [heartRate, setHeartRate] = useState(isEdit && existingSession.heartRate != null ? String(existingSession.heartRate) : "");
@@ -3513,12 +3544,13 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
       const existing = isEdit && Array.isArray(existingSession.exerciseLogs)
         ? existingSession.exerciseLogs.find((e) => e.name === name)
         : null;
-      const lastLog = findLastExerciseLog(program, name);
-      const suggestion = suggestNextLoad({ lastLog, level: program.level, goalKey: program.goal, sleepQuality: checkIn?.sleep, youth: isYouth(profile), senior: isSenior(profile) });
+      const lastLog = findLastExerciseLog(program, name, isBodyweight);
+      const suggestion = suggestNextLoad({ lastLog, level: program.level, goalKey: program.goal, sleepQuality: checkIn?.sleep, youth: isYouth(profile), senior: isSenior(profile), bodyweight: isBodyweight });
       return {
         name,
-        weight: existing?.weight != null ? String(existing.weight) : suggestion ? String(suggestion.weight) : "",
-        reps: existing?.reps != null ? String(existing.reps) : suggestion ? String(suggestion.reps) : "",
+        weight: existing?.weight != null ? String(existing.weight) : suggestion?.weight != null ? String(suggestion.weight) : "",
+        reps: existing?.reps != null ? String(existing.reps) : suggestion?.reps != null ? String(suggestion.reps) : "",
+        note: existing?.note || "",
         suggestion,
         lastLog,
       };
@@ -3534,12 +3566,13 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
       strengthExercises.map((name) => {
         const existingRow = prev.find((e) => e.name === name);
         if (existingRow) return existingRow;
-        const lastLog = findLastExerciseLog(program, name);
-        const suggestion = suggestNextLoad({ lastLog, level: program.level, goalKey: program.goal, sleepQuality: checkIn?.sleep, youth: isYouth(profile), senior: isSenior(profile) });
+        const lastLog = findLastExerciseLog(program, name, isBodyweight);
+        const suggestion = suggestNextLoad({ lastLog, level: program.level, goalKey: program.goal, sleepQuality: checkIn?.sleep, youth: isYouth(profile), senior: isSenior(profile), bodyweight: isBodyweight });
         return {
           name,
-          weight: suggestion ? String(suggestion.weight) : "",
-          reps: suggestion ? String(suggestion.reps) : "",
+          weight: suggestion?.weight != null ? String(suggestion.weight) : "",
+          reps: suggestion?.reps != null ? String(suggestion.reps) : "",
+          note: "",
           suggestion,
           lastLog,
         };
@@ -3561,6 +3594,7 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
       name: e.name,
       weight: e.weight ? parseFloat(e.weight) : null,
       reps: e.reps ? parseInt(e.reps, 10) : null,
+      note: e.note || null,
     }));
 
     const session = {
@@ -3575,15 +3609,12 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
     };
     onComplete(session);
 
-    const stats = [
-      { label: "SESI", value: todayEntry.label },
-      { label: "DURASI", value: duration ? `${duration} menit` : "–" },
-    ];
-    if (heartRate) stats.push({ label: "DETAK JANTUNG", value: `${heartRate} bpm` });
-    if (weight) stats.push({ label: "BERAT BADAN", value: `${weight} kg` });
-    if (rpe) stats.push({ label: "RPE", value: `${rpe}/10` });
-    const topLift = finalLogs.filter((l) => l.weight != null).sort((a, b) => b.weight - a.weight)[0];
-    if (topLift) stats.push({ label: topLift.name, value: `${topLift.weight} kg x ${topLift.reps || "?"}` });
+    // Statistik utama untuk kartu (bahasa Inggris, maksimal 3 yang paling relevan)
+    const stats = [];
+    if (duration) stats.push({ label: "Duration", value: duration, unit: "min" });
+    if (heartRate) stats.push({ label: "Heart rate", value: heartRate, unit: "bpm" });
+    if (rpe) stats.push({ label: "RPE", value: rpe, unit: "/10" });
+    if (stats.length < 3 && weight) stats.push({ label: "Body weight", value: weight, unit: "kg" });
 
     // Progres program (termasuk sesi yang baru saja diselesaikan)
     const { days } = buildSchedule(program);
@@ -3611,34 +3642,32 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
     try {
       window.localStorage.setItem("history:prs", JSON.stringify(updatedPrs));
     } catch (e) {}
-    const prBadge = prExercise ? `🏆 Rekor baru — ${prExercise}!` : null;
 
-    // Tren berat badan (maksimal 6 titik terakhir termasuk hari ini)
-    const pastWeights = program.completedSessions
-      .filter((s) => s.date !== session.date && s.weight != null)
-      .map((s) => s.weight);
-    const weightTrendData = weight ? [...pastWeights, parseFloat(weight)].slice(-6) : null;
+    // Grafik per gerakan: beban (gym) atau repetisi (latihan tanpa alat)
+    const loadBars = isBodyweight
+      ? finalLogs.filter((l) => l.reps != null && l.reps > 0).map((l) => ({ name: l.name, value: l.reps }))
+      : finalLogs.filter((l) => l.weight != null && l.weight > 0).map((l) => ({ name: l.name, value: l.weight }));
+    const loadBarLabel = isBodyweight ? "REPS BY EXERCISE" : "LOAD BY EXERCISE (kg)";
 
-    // Kartu share: tampilkan gerakan inti + kardio saja.
-    // Pemanasan, peregangan, dan latihan keseimbangan disembunyikan
-    // supaya kartu tidak terlalu ramai saat dibagikan.
-    const shareExercises = finalExercises.filter(
-      (ex) =>
-        !ex.startsWith("Pemanasan dinamis:") &&
-        !ex.startsWith("Peregangan:") &&
-        !ex.startsWith("Latihan keseimbangan:")
-    );
+    // Kehadiran minggu ini (Senin-Minggu), termasuk sesi yang baru selesai
+    const weekDays = days.filter((d) => d.weekNum === todayEntry.weekNum);
+    const doneDates = new Set([...program.completedSessions.map((s) => s.date), session.date]);
+    const weekDots = Array.from({ length: 7 }, (_, i) => {
+      const match = weekDays.find((d) => (new Date(d.date + "T00:00:00").getDay() + 6) % 7 === i);
+      return !!(match && doneDates.has(match.date));
+    });
 
     await downloadPhotoShareCard({
       photoDataUrl: withPhoto ? photoPreview : null,
-      headline: `Sesi ${todayEntry.label} Selesai!`,
-      stats,
-      listBlock: shareExercises,
-      footer: `Minggu ${todayEntry.weekNum} dari ${program.durationWeeks}${todayEntry.deload ? " · Deload" : ""} · Jejak`,
-      filename: `sesi-${todayEntry.label}-${todayEntry.date}`,
+      sessionLabel: `${todayEntry.label} Day`,
+      weekLabel: `WEEK ${todayEntry.weekNum} OF ${program.durationWeeks}${todayEntry.deload ? " · DELOAD" : ""}`,
       progressPct,
-      prBadge,
-      weightTrend: weightTrendData && weightTrendData.length >= 2 ? weightTrendData : null,
+      stats,
+      loadBars,
+      loadBarLabel,
+      weekDots,
+      prBadge: prExercise ? `New PR — ${prExercise}!` : null,
+      filename: `jejak-${todayEntry.label}-${todayEntry.date}`,
     });
     setJustCompleted(true);
     setTimeout(() => setJustCompleted(false), 2500);
@@ -3667,7 +3696,7 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
         {todayEntry.label}
       </div>
       <div className="text-xs mb-3" style={{ color: MUTED }}>
-        {combined.scheme} · istirahat {combined.rest}
+        {combined.scheme} · jeda antar set {combined.rest}
       </div>
 
       {checkIn && (checkIn.painNote || checkIn.sleepNote) && (
@@ -3709,13 +3738,13 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <div>
                     <span className="text-[10px] uppercase tracking-wide" style={{ color: MUTED }}>
-                      Beban (kg)
+                      {isBodyweight ? "Catatan / variasi" : "Beban (kg)"}
                     </span>
                     <input
-                      type="number"
-                      value={ex.weight}
-                      onChange={(e) => updateLog(ex.name, "weight", e.target.value)}
-                      placeholder="kg"
+                      type={isBodyweight ? "text" : "number"}
+                      value={isBodyweight ? ex.note || "" : ex.weight}
+                      onChange={(e) => updateLog(ex.name, isBodyweight ? "note" : "weight", e.target.value)}
+                      placeholder={isBodyweight ? "mis. kaki diangkat" : "kg"}
                       className="w-full text-sm bg-transparent border-b outline-none py-1"
                       style={{ borderColor: LINE, color: GRAPHITE }}
                     />
@@ -3734,15 +3763,30 @@ function TodaySessionCard({ program, todayEntry, todayExercises, combined, onCom
                     />
                   </div>
                 </div>
-                {ex.suggestion ? (
-                  <p className="text-[11px] mt-2" style={{ color: "#1F9254" }}>
-                    💡 Saran: {ex.suggestion.weight} kg × {ex.suggestion.reps} — {ex.suggestion.note}
-                  </p>
-                ) : (
-                  <p className="text-[11px] mt-2" style={{ color: MUTED }}>
-                    Belum ada riwayat gerakan ini — isi beban yang Anda pakai hari ini.
-                  </p>
-                )}
+                <div className="flex items-center justify-between gap-2 mt-2">
+                  {ex.suggestion ? (
+                    <p className="text-[11px]" style={{ color: "#1F9254" }}>
+                      💡 Saran: {isBodyweight
+                        ? `${ex.suggestion.reps} repetisi`
+                        : `${ex.suggestion.weight} kg × ${ex.suggestion.reps}`} — {ex.suggestion.note}
+                    </p>
+                  ) : (
+                    <p className="text-[11px]" style={{ color: MUTED }}>
+                      {isBodyweight
+                        ? "Belum ada riwayat — catat repetisi yang Anda capai hari ini."
+                        : "Belum ada riwayat gerakan ini — isi beban yang Anda pakai hari ini."}
+                    </p>
+                  )}
+                  <a
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + " proper form technique")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-semibold shrink-0"
+                    style={{ color: TRACK }}
+                  >
+                    ▶ Contoh
+                  </a>
+                </div>
               </div>
             ))}
             {finalExercises.some((ex) => !isTrackableExercise(ex)) && (
@@ -4129,7 +4173,7 @@ function ProgramDashboard({ program, onComplete, onReset }) {
               <div className="flex items-center gap-1.5 text-sm mt-2" style={{ color: MUTED }}>
                 <span>{combined.scheme}</span>
                 <span>·</span>
-                <span>istirahat {combined.rest}</span>
+                <span>jeda antar set {combined.rest}</span>
               </div>
 
               {editingPreviewExercises ? (
@@ -4604,12 +4648,20 @@ const MENU_TEMPLATES = [
 
 function NutrisiPanel() {
   const [profile] = useProfile();
+  const { program } = useActiveProgram();
   const [gender, setGender] = useState(profile.gender || "male");
   const [age, setAge] = useState(profile.age || "28");
   const [weightKg, setWeightKg] = useState(profile.weight || "65");
   const [heightCm, setHeightCm] = useState(profile.height || "170");
-  const [activity, setActivity] = useState("moderate");
-  const [goal, setGoal] = useState("maintenance");
+  // Aktivitas & tujuan otomatis menyesuaikan program latihan yang sedang berjalan
+  const programFreq = program
+    ? (program.dayMode === "manual" && program.customDays ? program.customDays.length : parseInt(program.freq, 10) || 3)
+    : null;
+  const [activity, setActivity] = useState(
+    programFreq == null ? "moderate" : programFreq >= 6 ? "active" : programFreq >= 4 ? "moderate" : "light"
+  );
+  const [goal, setGoal] = useState(program ? program.goal : "maintenance");
+  const [syncedFromProgram, setSyncedFromProgram] = useState(!!program);
   const [savedCalories, setSavedCalories] = useState(false);
   const { addEntry: addCalorieEntry } = useHistory("history:calories");
 
@@ -4689,10 +4741,26 @@ function NutrisiPanel() {
               ]}
             />
           </Field>
+          {syncedFromProgram && program && (
+            <div className="mb-4 p-3 rounded-lg flex items-start justify-between gap-2" style={{ backgroundColor: "#E3F5E9" }}>
+              <p className="text-xs" style={{ color: "#1F6E44" }}>
+                ✓ Disesuaikan otomatis dengan program latihan aktif Anda
+                ({TRAINING_GOALS[program.goal] ? TRAINING_GOALS[program.goal].label : program.goal},
+                {" "}{programFreq}x/minggu). Bisa diubah manual di bawah bila perlu.
+              </p>
+              <button onClick={() => setSyncedFromProgram(false)} className="text-xs shrink-0" style={{ color: "#1F6E44" }}>
+                ✕
+              </button>
+            </div>
+          )}
+
           <Field label="Tujuan">
             <Select
               value={goal}
-              onChange={setGoal}
+              onChange={(v) => {
+                setGoal(v);
+                setSyncedFromProgram(false);
+              }}
               options={[
                 { value: "cutting", label: "Menurunkan lemak (cutting)" },
                 { value: "muscle", label: "Menambah massa otot (lean bulk)" },
